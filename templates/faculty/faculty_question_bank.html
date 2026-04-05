@@ -1,0 +1,819 @@
+{% extends "base.html" %}
+{% block title %}Question Bank{% endblock %}
+{% block content %}
+
+<script>
+
+  
+  function filterQuestions() {
+    const bloom = document.getElementById('bloom-filter').value;
+    const co = document.getElementById('co-filter').value.trim().toLowerCase();
+    const topic = document.getElementById('topic-filter').value.trim().toLowerCase();
+    const marks = document.getElementById('marks-filter').value;
+    const sort = document.getElementById('sort-filter').value;
+    const search = document.getElementById('search-filter').value.toLowerCase();
+    const showSelected = document.getElementById('show-selected-filter').checked;
+    let items = Array.from(document.querySelectorAll('.question-item'));
+    items.forEach(card => {
+      const questionText = card.querySelector('.question-text').textContent.toLowerCase();
+      const cardBloom = (card.querySelector('.badge:nth-child(2)').textContent || '').toLowerCase();
+      const cardCO = (card.querySelector('.badge:nth-child(3)').textContent || '').toLowerCase();
+      const cardTopic = (card.querySelector('.badge:nth-child(4)').textContent || '').toLowerCase();
+      const cardMarks = (card.querySelector('.badge:nth-child(1)').textContent || '').replace(/\D/g, '');
+      const matchesSearch = search === '' || questionText.includes(search) || cardTopic.includes(search);
+      const matchesBloom = bloom === 'all' || cardBloom === bloom.toLowerCase();
+      const matchesCO = co === 'all' || cardCO === co;
+      const matchesTopic = topic === 'all' || cardTopic === topic;
+      const matchesMarks = marks === 'all' || cardMarks === marks;
+      const isSelected = card.querySelector('.question-checkbox').checked;
+      let show = (matchesSearch && matchesBloom && matchesCO && matchesTopic && matchesMarks);
+      if (showSelected && !isSelected) show = false;
+      card.style.display = show ? '' : 'none';
+    });
+    if (sort && sort !== 'id') {
+      items.sort((a, b) => {
+        let aVal, bVal;
+        if (sort === 'marks') {
+          aVal = parseInt(a.querySelector('.badge').textContent);
+          bVal = parseInt(b.querySelector('.badge').textContent);
+        } else if (sort === 'bloom_level') {
+          aVal = a.querySelector('.badge:nth-child(2)').textContent;
+          bVal = b.querySelector('.badge:nth-child(2)').textContent;
+        } else if (sort === 'co_level') {
+          aVal = a.querySelector('.badge:nth-child(3)').textContent;
+          bVal = b.querySelector('.badge:nth-child(3)').textContent;
+        } else if (sort === 'topic') {
+          aVal = a.querySelector('.badge:nth-child(4)').textContent;
+          bVal = b.querySelector('.badge:nth-child(4)').textContent;
+        } else {
+          aVal = a.dataset.id || '';
+          bVal = b.dataset.id || '';
+        }
+        if (aVal < bVal) return -1;
+        if (aVal > bVal) return 1;
+        return 0;
+      });
+      const list = document.getElementById('question-list');
+      items.forEach(item => list.appendChild(item));
+    }
+  }
+
+  function updateDeleteSelectedBtn() {
+    const btn = document.getElementById('delete-selected-btn');
+    const anyChecked = document.querySelectorAll('.question-checkbox:checked').length > 0;
+    if (btn) btn.disabled = !anyChecked;
+  }
+
+  async function deleteSelectedQuestions() {
+    const checked = Array.from(document.querySelectorAll('.question-checkbox:checked')).filter(cb => {
+      const item = cb.closest('.question-item');
+      return item && item.style.display !== 'none';
+    });
+    if (checked.length === 0) {
+      alert('Please select at least one question to delete.');
+      return;
+    }
+    if (!confirm('Delete all selected questions from bank?')) return;
+    const ids = checked.map(cb => parseInt(cb.value));
+    try {
+      const response = await fetch('/faculty/question-bank/delete-bulk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ ids })
+      });
+      if (response.redirected) {
+        window.location.href = response.url;
+        return;
+      }
+      if (response.ok) {
+        let data = {};
+        try { data = await response.json(); } catch { }
+        let deletedIds = data.deleted_ids || ids;
+        checked.forEach(cb => {
+          const val = parseInt(cb.value);
+          if (deletedIds.includes(val) || deletedIds.includes(cb.value)) {
+            const item = cb.closest('.question-item');
+            if (item) item.parentNode.removeChild(item);
+          }
+        });
+        if (data.failed_ids && data.failed_ids.length > 0) {
+          alert('Failed to delete question(s) with ID(s): ' + data.failed_ids.join(', '));
+        }
+        if (data.error) {
+          alert('Error: ' + data.error);
+        }
+      } else {
+        let msg = 'Failed to delete selected questions.';
+        try { const err = await response.json(); if (err && err.error) msg += '\n' + err.error; } catch { }
+        if (response.status === 404) msg += '\n(Bulk delete endpoint not found. Please check backend route registration.)';
+        alert(msg);
+      }
+    } catch (e) {
+      alert('Failed to delete selected questions. ' + e);
+    }
+    updateDeleteSelectedBtn();
+    updateStats();
+  }
+</script>
+
+
+<style>
+  .header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.2rem;
+  }
+
+  .add-question-btn {
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    font-weight: 700;
+  }
+
+  .review-header {
+    background: var(--card);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border-left: 5px solid var(--primary);
+    color: var(--text);
+    transition: background 0.3s, color 0.3s, border 0.3s, box-shadow 0.3s;
+  }
+
+  .review-header h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin: 0;
+    letter-spacing: 0.01em;
+    transition: color 0.3s, text-shadow 0.3s;
+  }
+
+  .review-header p {
+    color: var(--text-muted);
+    font-size: 1rem;
+    margin: 0;
+    font-weight: 500;
+    transition: color 0.3s;
+  }
+
+  .content {
+    overflow-y: visible !important;
+  }
+
+  .review-stats {
+    position: sticky;
+    top: 10.5vh;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    border: 1.5px solid var(--border);
+    padding: 1.5rem;
+    color: var(--text);
+    min-height: 70px;
+    transition: box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1), border 0.25s, background 0.35s, top 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(2px);
+    will-change: top, box-shadow, background, padding;
+    margin-bottom: 30px;
+  }
+
+  .stat {
+    text-align: center;
+    flex: 1;
+  }
+
+  .stat h3 {
+    color: var(--primary);
+    font-size: 1.5rem;
+    margin: 0;
+    font-weight: 700;
+  }
+
+  .stat p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin: 4px 0 0 0;
+    font-weight: 500;
+  }
+
+  .filter-bar {
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 24px 0 var(--primary)11, 0 1.5px 0 0 var(--primary-light);
+    padding: 1.2rem;
+    border: 1.5px solid var(--border);
+    transition: box-shadow 0.3s, border 0.3s, background 0.3s;
+    will-change: top, box-shadow, background, padding;
+    margin-bottom: 30px;
+  }
+
+  .filter-group select,
+  .filter-group input[type="text"] {
+    padding: 10px 16px;
+    border: 1.5px solid var(--primary-light);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--primary-dark);
+    font-size: 1.05rem;
+    font-weight: 500;
+    transition: border 0.2s;
+    box-shadow: 0 1px 4px var(--primary)11;
+  }
+
+  .filter-group select:focus,
+  .filter-group input[type="text"]:focus {
+    border: 2px solid var(--primary);
+  }
+
+  .filter-group input[type="checkbox"] {
+    margin-right: 6px;
+    accent-color: var(--primary);
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .filter-search input {
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  .filter-bar-main {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 220px;
+  }
+
+  .filter-label {
+    font-size: 0.97rem;
+    font-weight: 600;
+    color: var(--primary-dark);
+    margin-bottom: 0.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .switch.switch-cs {
+    position: relative;
+    display: inline-block;
+    width: 70px;
+    height: 35px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .switch.switch-cs input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider.round {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+  }
+
+  .slider.round:before {
+    position: absolute;
+    content: "";
+    height: 30px;
+    width: 30px;
+    left: 5px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+  }
+
+  .switch.switch-cs input:checked+.slider.round {
+    background-color: var(--primary);
+  }
+
+  .switch.switch-cs input:checked+.slider.round:before {
+    transform: translateX(20px);
+  }
+
+  .question-list {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .question-item {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 1.2rem;
+    align-items: flex-start;
+    transition: background 0.2s, box-shadow 0.2s, border-left 0.2s;
+    border-radius: var(--radius);
+    margin: 0.5rem 0;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    position: relative;
+    color: var(--text);
+  }
+
+  .question-item.selected {
+    background: linear-gradient(135deg, var(--primary-light) 80%, var(--light) 100%);
+    border-left: 5px solid var(--primary);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .question-item:hover {
+    background: var(--bg);
+    box-shadow: var(--shadow);
+  }
+
+  .question-checkbox {
+    margin-top: 0.3rem;
+    margin-left: 0.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 6px;
+    border: 2px solid var(--primary);
+    background: var(--card);
+    transition: border 0.2s;
+  }
+
+  .question-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .question-text {
+    font-size: 1.13rem;
+    line-height: 1.7;
+    color: var(--text);
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+    word-break: break-word;
+    letter-spacing: 0.01em;
+  }
+
+  .question-meta {
+    display: flex;
+    gap: 0.7rem;
+    margin-top: 0.2rem;
+    font-size: 0.97rem;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+    font-weight: 500;
+  }
+
+  .badge {
+    background: #e0e7ff;
+    color: #3730a3;
+    padding: 3px 12px;
+    border-radius: 6px;
+    font-size: 0.97rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin-right: 0.2rem;
+    box-shadow: 0 1px 4px var(--primary)11;
+  }
+
+  .badge-bloom {
+    background: #dbeafe !important;
+    color: #1d4ed8 !important;
+  }
+
+  .badge-co {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+  }
+
+  .badge-topic {
+    background: #fce7f3 !important;
+    color: #be185d !important;
+  }
+
+  .question-item-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-end;
+    margin-left: 1.2rem;
+  }
+
+  .edit-btn {
+    padding: 0.4rem 1.1rem;
+    font-size: 0.97rem;
+    border-radius: 6px;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+
+  .delete-btn {
+    padding: 0.4rem 1.1rem;
+    font-size: 0.97rem;
+    border-radius: 6px;
+    font-weight: 600;
+    background: #dc2626;
+    color: #fff;
+  }
+
+  [data-theme="dark"] .review-header h3 {
+    color: var(--neon-green);
+    text-shadow: 0 2px 8px var(--shadow-dark);
+  }
+
+  [data-theme="dark"] .question-item.selected {
+    background: linear-gradient(135deg, var(--primary-dark) 80%, var(--neon-green) 10%);
+    border-left: 5px solid var(--neon-green);
+    box-shadow: var(--shadow-lg);
+  }
+
+  [data-theme="dark"] .question-item:hover {
+    background: var(--dark);
+    box-shadow: var(--shadow);
+  }
+
+  [data-theme="dark"] .badge {
+    background: #fffbe7;
+    color: #b45309;
+    font-weight: 700;
+    box-shadow: 0 1px 6px #fbbf2433;
+  }
+
+  [data-theme="dark"] .badge-marks {
+    background: #fffbe7;
+    color: #b45309;
+    font-weight: 700;
+    box-shadow: 0 1px 6px #fbbf2433;
+  }
+
+  [data-theme="dark"] .filter-group select,
+  [data-theme="dark"] .filter-group input[type="text"] {
+    background: var(--dark);
+    color: var(--neon-green);
+    border: 1.5px solid var(--neon-green);
+    box-shadow: 0 1px 8px #00ff8844;
+  }
+
+
+  @media (max-width: 900px) {
+    .filter-bar-main {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .filter-bar {
+      padding: 0.7rem 0.7rem;
+    }
+
+    .filter-bar-actions {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .filter-bar-main {
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+
+    .filter-bar {
+      padding: 0.7rem 0.7rem;
+    }
+
+    .filter-bar-actions {
+      flex-direction: column;
+      gap: 0.7rem;
+      align-items: stretch;
+    }
+  }
+
+
+
+  @media (max-width: 700px) {
+
+    .review-header,
+    .review-stats,
+    .question-list,
+    .question-item {
+      padding-left: 0.8rem !important;
+      padding-right: 0.8rem !important;
+    }
+
+    .review-header,
+    .question-list {
+      border-radius: var(--radius);
+    }
+
+    .review-stats {
+      flex-direction: column;
+      gap: 0.7rem;
+      padding: 0.7rem 0.8rem;
+    }
+
+    .form-actions {
+      flex-direction: column;
+      gap: 0.7rem;
+      align-items: stretch;
+    }
+  }
+</style>
+
+
+<div class="review-header">
+  <h3>Question Bank</h3>
+  <div class="header-flex">
+    <p class="review-header-desc">Manage your question library</p>
+    <a href="{{ url_for('qb.add_question') }}" class="btn btn-primary add-question-btn">+ Add Question</a>
+  </div>
+</div>
+
+<div class="review-stats">
+  <div class="stat">
+    <h3>{{ questions | length }}</h3>
+    <p>Questions in Bank</p>
+  </div>
+  <div class="stat">
+    <h3 id="selected-count">0</h3>
+    <p>Selected</p>
+  </div>
+  <div class="stat">
+    <h3 id="total-marks">0</h3>
+    <p>Total Marks</p>
+  </div>
+</div>
+
+<div class="filter-bar" role="region" aria-label="Question Filters">
+  <form class="filter-bar-main" onsubmit="return false;" autocomplete="off">
+    <div class="filter-group">
+      <label for="bloom-filter" title="Bloom Level" class="filter-label"><span class="filter-icon">💡</span>
+        Bloom</label>
+      <select id="bloom-filter" name="bloom" class="filter-pill" onchange="filterQuestions()">
+        <option value="all">All</option>
+        {% for q in questions|unique(attribute='bloom_level') if q.bloom_level %}
+        <option value="{{ q.bloom_level }}">{{ q.bloom_level }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="co-filter" title="CO Level" class="filter-label"><span class="filter-icon">🏷️</span> CO</label>
+      <select id="co-filter" name="co" class="filter-pill" onchange="filterQuestions()">
+        <option value="all">All</option>
+        {% for q in questions|unique(attribute='co_level') if q.co_level %}
+        <option value="{{ q.co_level }}">{{ q.co_level }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="topic-filter" title="Topic" class="filter-label"><span class="filter-icon">📚</span> Topic</label>
+      <select id="topic-filter" name="topic" class="filter-pill" onchange="filterQuestions()">
+        <option value="all">All</option>
+        {% for q in questions|unique(attribute='topic') if q.topic %}
+        <option value="{{ q.topic }}">{{ q.topic }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="marks-filter" title="Marks" class="filter-label"><span class="filter-icon">🔢</span> Marks</label>
+      <select id="marks-filter" name="marks" class="filter-pill" onchange="filterQuestions()">
+        <option value="all">All</option>
+        {% for m in [2,4,8] %}
+        {% if questions|selectattr('marks', 'equalto', m)|list %}
+        <option value="{{ m }}">{{ m }}</option>
+        {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="sort-filter" title="Sort" class="filter-label"><span class="filter-icon">↕️</span> Sort</label>
+      <select id="sort-filter" name="sort" class="filter-pill" onchange="filterQuestions()">
+        <option value="topic" selected>Topic</option>
+        <option value="id">ID</option>
+        <option value="marks">Marks</option>
+        <option value="bloom_level">Bloom</option>
+        <option value="co_level">CO</option>
+      </select>
+    </div>
+    <div class="filter-group filter-search" style="flex:2;min-width:180px;">
+      <label for="search-filter" class="filter-label"><span class="filter-icon">🔍</span> Search</label>
+      <input type="text" id="search-filter" name="search" class="filter-pill" placeholder="Type to search..."
+        oninput="filterQuestions()" autocomplete="off">
+    </div>
+    <div class="filter-group show-selected-toggle" style="min-width:120px;align-items:center;">
+      <label for="show-selected-filter" class="filter-label"><span class="filter-icon">✅</span> Show Selected</label>
+      <label class="switch switch-cs">
+        <input type="checkbox" id="show-selected-filter" name="show_selected" onchange="filterQuestions()">
+        <span class="slider round"></span>
+      </label>
+    </div>
+
+
+    <button type="button" id="select-all-btn" onclick="toggleSelectAllBtn(this)" aria-pressed="false"
+      class="btn filter-action-btn" tabindex="0">Select All</button>
+    <button type="button" id="delete-selected-btn" onclick="deleteSelectedQuestions()" class="btn filter-action-btn"
+      tabindex="0">Delete Selected</button>
+    <button type="button" id="clear-filters-btn" class="btn filter-action-btn" onclick="clearFilters()"
+      tabindex="0">Clear Filters</button>
+  </form>
+</div>
+
+<div class="question-list" id="question-list">
+  {% for q in questions %}
+  <div class="question-item">
+    <input type="checkbox" class="question-checkbox" name="select_question" value="{{ q.id }}" onchange="updateStats()">
+    <div class="question-content">
+      <div class="question-text">
+        <strong>(Q{{ loop.index }})</strong> {{ q.text }}
+      </div>
+      <div class="question-meta">
+        <span class="badge">{{ q.marks }} Marks</span>
+        <span class="badge badge-bloom">{{ q.bloom_level }}</span>
+        <span class="badge badge-co">{{ q.co_level }}</span>
+        <span class="badge badge-topic">{{ q.topic }}</span>
+      </div>
+    </div>
+    <div class="question-item-actions">
+      <a href="{{ url_for('qb.edit_question', q_id=q.id) }}" class="btn btn-secondary edit-btn">Edit</a>
+      <button type="button" class="btn btn-danger delete-btn" onclick="deleteSingleQuestion({{ q.id }})">Delete</button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div style="display: flex; justify-content: flex-end; margin-top: 1.5rem;">
+  <button type="button" id="finalize-btn" class="btn btn-primary finalize-btn" onclick="finalizePaper()">
+    Finalize Paper (PDF)
+  </button>
+</div>
+
+
+
+<script>
+  function clearFilters() {
+    document.getElementById('bloom-filter').value = 'all';
+    document.getElementById('co-filter').value = 'all';
+    document.getElementById('topic-filter').value = 'all';
+    document.getElementById('marks-filter').value = 'all';
+    document.getElementById('sort-filter').value = 'topic';
+    document.getElementById('search-filter').value = '';
+    document.getElementById('show-selected-filter').checked = false;
+    filterQuestions();
+  }
+
+  async function finalizePaper() {
+    const selected = Array.from(document.querySelectorAll('.question-checkbox:checked'));
+    if (selected.length === 0) {
+      alert('Please select at least one question to finalize.');
+      return;
+    }
+    const ids = selected.map(cb => parseInt(cb.value));
+    try {
+      const response = await fetch('/faculty/question-bank/finalize-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ ids })
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'question_paper.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        let msg = 'Failed to generate PDF.';
+        try { const err = await response.json(); if (err && err.error) msg += '\n' + err.error; } catch { }
+        alert(msg);
+      }
+    } catch (e) {
+      alert('Failed to generate PDF. ' + e);
+    }
+  }
+
+  function updateStats() {
+    const checkboxes = document.querySelectorAll('input[name="select_question"]:checked');
+    document.getElementById('selected-count').textContent = checkboxes.length;
+    let totalMarks = 0;
+    checkboxes.forEach(cb => {
+      const item = cb.closest('.question-item');
+      const badgeText = item.querySelector('.badge').textContent;
+      const marks = parseInt(badgeText);
+      totalMarks += marks;
+    });
+    document.getElementById('total-marks').textContent = totalMarks;
+  }
+
+  function toggleSelectAllBtn(btn) {
+    const checkboxes = Array.from(document.querySelectorAll('.question-checkbox')).filter(cb => {
+      const item = cb.closest('.question-item');
+      return item && item.style.display !== 'none';
+    });
+    const allChecked = checkboxes.length > 0 && checkboxes.every(cb => cb.checked);
+    const newState = !allChecked;
+    checkboxes.forEach(cb => { if (!cb.disabled) cb.checked = newState; });
+    btn.setAttribute('aria-pressed', newState ? 'true' : 'false');
+    updateStats();
+    updateDeleteSelectedBtn();
+  }
+
+  function updateDeleteSelectedBtn() {
+    const btn = document.getElementById('delete-selected-btn');
+    const anyChecked = document.querySelectorAll('.question-checkbox:checked').length > 0;
+    if (btn) btn.disabled = !anyChecked;
+  }
+  
+  function clearSelections() {
+    const checkboxes = document.querySelectorAll('.question-checkbox');
+    checkboxes.forEach(cb => { cb.checked = false; });
+    document.getElementById('bloom-filter').value = 'all';
+    document.getElementById('co-filter').value = '';
+    document.getElementById('topic-filter').value = '';
+    document.getElementById('search-filter').value = '';
+    updateStats();
+    updateDeleteSelectedBtn();
+    filterQuestions();
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.question-item').forEach(function (item) {
+      item.addEventListener('click', function (e) {
+        if (e.target.classList.contains('question-checkbox')) return;
+        const cb = item.querySelector('.question-checkbox');
+        if (cb) cb.checked = !cb.checked;
+        updateStats();
+        updateDeleteSelectedBtn();
+      });
+    });
+    document.querySelectorAll('.question-checkbox').forEach(function (cb) {
+      cb.addEventListener('change', function () {
+        updateStats();
+        updateDeleteSelectedBtn();
+      });
+    });
+    updateDeleteSelectedBtn();
+    updateStats();
+  });
+  
+  async function deleteSingleQuestion(qid) {
+    if (!confirm('Delete this question from bank?')) return;
+    const item = document.querySelector('.question-item input[value="' + qid + '"]').closest('.question-item');
+    try {
+      const response = await fetch(`/faculty/question-bank/delete/${qid}`, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      if (response.redirected) {
+        window.location.href = response.url;
+        return;
+      }
+      if (response.ok) {
+        if (item) item.parentNode.removeChild(item);
+        updateStats();
+        updateDeleteSelectedBtn();
+      } else {
+        alert('Failed to delete question.');
+      }
+    } catch (e) {
+      alert('Failed to delete question.');
+    }
+  }
+</script>
+
+
+{% endblock %}

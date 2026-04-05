@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Review Questions</h2>
+<h3>Total Marks: <span id="total">0</span></h3>
+
+<form method="POST">
+
+{% for sec, questions in sections.items() %}
+<h3>Part {{ sec }}</h3>
+
+{% for q in questions %}
+<div>
+  <input type="checkbox" name="keep" value="{{ q.id }}"
+         data-marks="{{ q.marks }}" onchange="updateTotal()">
+  {{ q.text }} ({{ q.marks }} marks)
+</div>
+{% endfor %}
+
+{% endfor %}
+
+<br>
+<button type="submit">Finalize Paper</button>
+</form>
+
+<script>
+function updateTotal(){
+  let total = 0;
+  document.querySelectorAll("input[type=checkbox]:checked")
+    .forEach(cb => total += parseInt(cb.dataset.marks));
+  document.getElementById("total").innerText = total;
+}
+</script>
+
+</body>
+</html>

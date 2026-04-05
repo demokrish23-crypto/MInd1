@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Add User - Question Paper Generator{% endblock %}
+
+{% block content %}
+<style>
+  .user-form-field {
+    margin-bottom: 20px;
+  }
+  
+  .user-form-field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  
+  .user-form-field label span {
+    color: var(--danger);
+  }
+  
+  .user-form-field input,
+  .user-form-field select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: inherit;
+    background: var(--card);
+    color: var(--text);
+    transition: all 0.3s ease;
+  }
+  
+  .user-form-field input:focus,
+  .user-form-field select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+  }
+  
+  [data-theme="dark"] .user-form-field input:focus,
+  [data-theme="dark"] .user-form-field select:focus {
+    box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
+  }
+  
+  .form-actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .btn-cancel {
+    background: var(--light);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-cancel:hover {
+    background: var(--border);
+    color: var(--text);
+  }
+  
+  [data-theme="dark"] .btn-cancel:hover {
+    background: rgba(0, 255, 136, 0.1);
+    border-color: rgba(0, 255, 136, 0.3);
+  }
+</style>
+
+<div class="page-header">
+  <h1 class="page-title">Add New User</h1>
+</div>
+
+<div class="card" style="max-width: 700px;">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flashes">
+        {% for category, message in messages %}
+          <li class="flash-{{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+  <form method="POST">
+    <div class="user-form-field">
+      <label>Full Name <span>*</span></label>
+      <input type="text" name="name" required>
+    </div>
+    <div class="user-form-field">
+      <label>Email <span>*</span></label>
+      <input type="email" name="email" required>
+    </div>
+    <div class="user-form-field">
+      <label>Password <span>*</span></label>
+      <input type="password" name="password" required>
+    </div>
+    <div class="user-form-field">
+      <label>Role <span>*</span></label>
+      <select name="role" required>
+        <option value="">Select Role</option>
+        <option value="faculty">Faculty</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="user-form-field">
+      <label>Admin Add Password <span>*</span></label>
+      <input type="password" name="admin_add_pass" required>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Create User</button>
+      <a href="{{ url_for('admin.manage_users') }}" class="btn-cancel">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

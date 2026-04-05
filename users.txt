@@ -1,0 +1,15 @@
+faculty,chaitanya.mindforge@gmail.com,chaitanya23,Prof.Chaitanya
+faculty,khushi.mindforge@gmail.com,123khushi,Prof.Khushi
+faculty,krritika.mindforge@gmail.com,krritika321,Prof.krritika
+faculty,gungun.mindforge@gmail.com,gungun321,Prof.Gungun
+faculty,gursimar.mindforge@gmail.com,simar987,Prof.Gursimar
+faculty,kunal.mindforge@gmail.com,kunal123,Prof.Kunal
+faculty,laxmisharma75821@gmail.com,11223344,Prof.Kunal 1
+admin,2501060086@krmu.edu.in,chaitanya29,Chaitanya Purohit
+admin,2501060059@krmu.edu.in,khushi2923,Khushi
+admin,2501060058@krmu.edu.in,simar123,Gursimar Singh
+admin,2501060052@krmu.edu.in,123krritika,Krritika Yadav
+admin,2501060148@krmu.edu.in,gungun789,Gungun Singhal
+admin,25010667@krmu.edu.in,kunal@987,Kunal Yadav
+admin,krishsharma23oct@gmail.com,12345,Krish
+faculty,krishsharma23@gmail.com,123456,Prof.Krish

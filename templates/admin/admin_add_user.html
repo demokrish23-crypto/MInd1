@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Add User{% endblock %}
+
+{% block content %}
+<style>
+  .page-title { color: var(--text); margin-bottom: 2rem; }
+  .form-container { background:var(--card); max-width:500px; margin:30px auto; padding:30px; border-radius:8px; box-shadow:var(--shadow); border: 1px solid var(--border); }
+  .form-group { margin-bottom:20px; }
+  .form-group label { display:block; font-weight:600; margin-bottom:8px; color: var(--text); }
+  .form-group input, .form-group select { width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; box-sizing:border-box; background:var(--light); color: var(--text); transition: var(--transition); }
+  .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1); }
+  .form-actions { display:flex; gap:12px; margin-top:24px; }
+  .btn { padding:10px 20px; border-radius:4px; cursor:pointer; border:none; text-decoration:none; transition: var(--transition); }
+  .btn-primary { background:var(--primary); color:white; }
+  .btn-primary:hover { background:var(--primary-dark); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .btn-cancel { background:var(--light); color:var(--text); border: 1px solid var(--border); }
+  .btn-cancel:hover { background:var(--border); }
+</style>
+
+<h2 class="page-title">Add New User</h2>
+
+<div class="form-container">
+  <form method="POST" action="{{ url_for('admin.add_user') }}" id="add-user-form" style="display:none;">
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required>
+    </div>
+    <div class="form-group">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required>
+    </div>
+    <div class="form-group">
+      <label for="password">User Password</label>
+      <input type="password" id="password" name="password" required>
+    </div>
+    <div class="form-group">
+      <label for="role">Role</label>
+      <select id="role" name="role" required>
+        <option value="faculty">Faculty</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Create User</button>
+      <a href="{{ url_for('admin.manage_users') }}" class="btn btn-cancel">Cancel</a>
+    </div>
+  </form>
+</div>
+
+
+<!-- Admin Add Password Modal -->
+<style>
+  #adminAddPassModal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.25);
+    z-index: 1000;
+  }
+  #adminAddPassModal .modal-content {
+    background: var(--card);
+    color: var(--text);
+    padding: 2.5rem 2rem 2rem 2rem;
+    border-radius: 1.2rem;
+    box-shadow: 0 2px 24px rgba(56,189,248,0.13);
+    max-width: 350px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    border: 2px solid var(--primary);
+  }
+  [data-theme="dark"] #adminAddPassModal .modal-content {
+    background: var(--pg-dark-card, #232b3a);
+    color: #e0ffcc;
+    border-color: #00ff88;
+    box-shadow: 0 2px 24px rgba(0,255,136,0.13);
+  }
+  #adminAddPassModal h3 {
+    margin-bottom: 1.2rem;
+    color: var(--primary);
+    font-weight: 800;
+  }
+  [data-theme="dark"] #adminAddPassModal h3 {
+    color: #00ff88;
+  }
+  #adminAddPassModal p {
+    margin-bottom: 1.2rem;
+    color: var(--text-muted);
+  }
+  [data-theme="dark"] #adminAddPassModal p {
+    color: #a3e635;
+  }
+  #adminAddPassModal input[type="password"] {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    margin-bottom: 1.2rem;
+    border-radius: 0.6rem;
+    border: 1.5px solid var(--border);
+    font-size: 1.1rem;
+    background: var(--light, #f8fafc);
+    color: var(--text, #22223b);
+  }
+  [data-theme="dark"] #adminAddPassModal input[type="password"] {
+    background: #232b3a;
+    color: #e0ffcc;
+    border-color: #38bdf8;
+  }
+  #adminAddPassModal .btn {
+    width: 48%;
+    margin: 0 1%;
+  }
+  #adminAddPassModal .modal-actions {
+    display: flex;
+    gap: 4%;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+</style>
+<div id="adminAddPassModal">
+  <div class="modal-content">
+    <h3>Admin Add Password</h3>
+    <p>Enter the admin password to add a new user.</p>
+    <input type="password" id="modal-admin-add-pass" placeholder="Password">
+    <div id="modal-error" style="color:#ef4444;font-weight:600;display:none;margin-bottom:0.7rem;">Incorrect password. Try again.</div>
+    <div class="modal-actions">
+      <button id="modal-submit-btn" class="btn btn-primary">Continue</button>
+      <button id="modal-cancel-btn" class="btn btn-cancel" type="button">Back</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Modal logic for admin add password
+const modal = document.getElementById('adminAddPassModal');
+const modalInput = document.getElementById('modal-admin-add-pass');
+const modalBtn = document.getElementById('modal-submit-btn');
+const modalCancel = document.getElementById('modal-cancel-btn');
+const modalError = document.getElementById('modal-error');
+const form = document.getElementById('add-user-form');
+
+modalBtn.onclick = function(e) {
+  e.preventDefault();
+  if (modalInput.value === 'addme') {
+    modal.style.display = 'none';
+    form.style.display = '';
+    form.querySelector('input,select').focus();
+  } else {
+    modalError.style.display = 'block';
+    modalInput.value = '';
+    modalInput.focus();
+  }
+};
+modalInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') modalBtn.click();
+});
+modalCancel.onclick = function() {
+  // Optionally, redirect or just close modal and go back
+  window.location.href = document.referrer || '/admin/users';
+};
+window.onload = function() {
+  modalInput.focus();
+};
+</script>
+{% endblock %}

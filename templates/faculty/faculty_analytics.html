@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+      /* Responsive fit to chart-card */
+      .chart-card .topic-table {
+        width: 100vw;
+        max-width: 100vw;
+        min-width: 0;
+        table-layout: fixed;
+        margin-left: calc(-1 * (100vw - 100%) / 2);
+        margin-right: 0;
+        border-radius: 10px;
+        box-shadow: none;
+      }
+      /* Dark theme adjustments for topic color dot and table */
+      [data-theme="dark"] .topic-table {
+        background: #181f2a;
+        color: #e0ffcc;
+      }
+      [data-theme="dark"] .topic-table th {
+        background: #232b3a;
+        color: #00ff88;
+        border-bottom: 2px solid #00ff88;
+      }
+      [data-theme="dark"] .topic-table .topic-color-dot {
+        border: 2px solid #00ff88;
+        box-shadow: 0 1px 4px rgba(0,255,136,0.10);
+      }
+    /* Enhanced Topic Table UI/UX */
+    .topic-table {
+      width: 100%;
+
+      /* max-width: 700px;
+      
+      margin-left: auto;
+      margin-right: auto; */
+      border-collapse: separate;
+      border-spacing: 0 8px;
+      margin-top: 18px;
+      background: var(--card);
+      color: var(--text);
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .topic-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--border);
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 1.08em;
+      border-bottom: 2px solid var(--primary);
+      letter-spacing: 0.02em;
+      padding: 12px 10px;
+      text-align: left;
+    }
+    .topic-table tbody tr {
+      background: var(--card);
+      border-radius: 10px;
+      transition: box-shadow 0.2s, background 0.2s;
+    }
+    .topic-table tbody tr:nth-child(even) {
+      background: var(--bg-alt, #3c6d9f);
+    }
+    .topic-table tbody tr:hover {
+      background: var(--border);
+      box-shadow: 0 4px 16px rgba(0,255,136,0.10);
+    }
+    .topic-table td {
+      padding: 12px 10px;
+      font-size: 1.04em;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--border);
+    }
+    .topic-table td:first-child {
+      text-align: center;
+      width: 12%;
+      min-width: 48px;
+      max-width: 80px;
+    }
+    .topic-table td:nth-child(2) {
+      width: 16%;
+      min-width: 60px;
+      max-width: 120px;
+      text-align: center;
+    }
+    .topic-table td:nth-child(3) {
+      width: 52%;
+      min-width: 120px;
+      text-align: left;
+      word-break: break-word;
+    }
+    .topic-table td:last-child {
+      width: 20%;
+      min-width: 60px;
+      text-align: right;
+      font-weight: bold;
+      color: var(--primary);
+      font-size: 1.08em;
+    }
+    .topic-table th, .topic-table td {
+      padding: 10px 10px;
+      font-size: 1em;
+      vertical-align: middle;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .topic-table .topic-color-dot {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      background: var(--topic-dot, #e0e7ef);
+      transition: background 0.2s;
+    }
+    @media (max-width: 700px) {
+      .topic-table thead {
+        display: none;
+      }
+      .topic-table, .topic-table tbody, .topic-table tr, .topic-table td {
+        display: block;
+        width: 100%;
+      }
+      .topic-table tr {
+        margin-bottom: 18px;
+        border-radius: 12px;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+      }
+      .topic-table td {
+        padding: 10px 14px;
+        text-align: left;
+        border-bottom: none;
+        position: relative;
+      }
+      .topic-table td:before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--primary);
+        display: block;
+        margin-bottom: 2px;
+        font-size: 0.98em;
+      }
+    }
+  .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .stat-card { background:var(--card); padding:20px; border-radius:8px; box-shadow:var(--shadow); text-align:center; border: 1px solid var(--border); color: var(--text); }
+  .stat-card h3 { color:var(--primary); font-size:28px; margin:8px 0; }
+  .stat-card p { color:var(--text-muted); }
+  .chart-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:24px; }
+  .chart-card { background:var(--card); padding:20px; border-radius:8px; box-shadow:var(--shadow); border: 1px solid var(--border); color: var(--text); min-height: 400px; }
+  .chart-card canvas { max-height: 350px; }
+  /* Enhanced dark mode for charts */
+  [data-theme="dark"] .chart-card canvas {
+    background: #10192b !important;
+    border-radius: 12px;
+    box-shadow: 0 0 0 2px #00ff88, 0 2px 8px #0a0e27;
+  }
+    /* Chart label enhancements */
+    .chartjs-render-monitor text {
+      font-size: 1.1em !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.02em;
+    }
+  <div class="chart-card" style="grid-column: span 2;">
+    <h3>Papers Created (Day & 6hr Bracket)</h3>
+    <canvas id="papersDayBracketChart"></canvas>
+  </div>
+  </script>
+  <script>
+    // Papers Created Over Time (Day & 6hr Bracket)
+    const papersDayBracketRaw = [
+      {% for day, bracket, count in papers_day_bracket %}
+        { day: '{{ day }}', bracket: {{ bracket }}, count: {{ count }} },
+      {% endfor %}
+    ];
+    // Build labels and data for stacked bar: one bar per day, each stack is a 6hr bracket
+    const bracketLabels = ['0-6h', '6-12h', '12-18h', '18-24h'];
+    const daySet = new Set(papersDayBracketRaw.map(e => e.day));
+    const days = Array.from(daySet).sort();
+    const dataByBracket = [0, 6, 12, 18].map(bracket => {
+      return days.map(day => {
+        const found = papersDayBracketRaw.find(e => e.day === day && e.bracket === bracket);
+        return found ? found.count : 0;
+      });
+    });
+    const papersDayBracketCtx = document.getElementById('papersDayBracketChart').getContext('2d');
+    new Chart(papersDayBracketCtx, {
+      type: 'bar',
+      data: {
+        labels: days,
+        datasets: bracketLabels.map((label, i) => ({
+          label,
+          data: dataByBracket[i],
+          backgroundColor: [chartColors.primary, chartColors.secondary, chartColors.warning, chartColors.danger][i],
+          borderColor: [chartColors.primary, chartColors.secondary, chartColors.warning, chartColors.danger][i],
+          borderWidth: 2
+        }))
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: chartColors.textColor, font: { weight: 'bold', size: 14 } } },
+          title: { display: false },
+          tooltip: { enabled: true }
+        },
+        scales: {
+          x: { stacked: true, ticks: { color: chartColors.textColor, font: { weight: 'bold', size: 13 } }, grid: { color: chartColors.gridColor } },
+          y: { stacked: true, beginAtZero: true, ticks: { color: chartColors.textColor, font: { weight: 'bold', size: 13 } }, grid: { color: chartColors.gridColor } }
+        }
+      }
+    });
+  </script>
+  .chart-card table { width: 100%; color: var(--text); }
+  .chart-card th, .chart-card td { padding: 8px; border-bottom: 1px solid var(--border); text-align: left; }
+</style>
+
+<h2>Analytics Dashboard</h2>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <p>Total Questions</p>
+    <h3>{{ total_questions }}</h3>
+  </div>
+  <div class="stat-card">
+    <p>Papers Generated</p>
+    <h3>{{ total_papers }}</h3>
+  </div>
+  <div class="stat-card">
+    <p>Avg Questions/Paper</p>
+    <h3>{% if total_papers > 0 %}{{ (total_questions / total_papers) | round(1) }}{% else %}0{% endif %}</h3>
+  </div>
+  <div class="stat-card">
+    <p>Subjects</p>
+    <h3>{{ subjects | length }}</h3>
+  </div>
+</div>
+
+
+<div class="chart-grid">
+  <div class="chart-card">
+    <h3>Questions by Subject</h3>
+    <canvas id="subjectChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>Questions by Difficulty</h3>
+    <canvas id="difficultyChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>Questions by Bloom Level</h3>
+    <canvas id="bloomChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>Questions by CO</h3>
+    <canvas id="coChart"></canvas>
+  </div>
+  <div class="chart-card" style="grid-column: span 2;">
+    <h3>Questions by Topic</h3>
+    <canvas id="topicChart"></canvas>
+  
+    </div>
+        <table class="topic-table ">
+        <thead>
+          <tr>
+            <th>Color</th>
+            <th>ID</th>
+            <th>Topic</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% set border_colors = [
+          '#00ff88', '#38bdf8', '#fbbf24', '#fb7185', '#d8b4fe', '#f472b6',
+          '#f87171', '#34d399', '#818cf8', '#facc15', '#a78bfa', '#f472b6',
+          '#60a5fa', '#fbbf24', '#a3e635', '#f472b6', '#f87171', '#f472b6'
+        ] %}
+        {% for topic, count in topics %}
+          {% set code = 'T' ~ (loop.index0 + 1) %}
+          {% set color = border_colors[loop.index0 % border_colors|length] %}
+          <tr>
+            <td data-label="Color"><span class="topic-color-dot" style="background: {{ color }};"></span></td>
+            <td data-label="ID">{{ code }}</td>
+            <td data-label="Topic">{{ topic }}</td>
+            <td data-label="Count">{{ count }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+        </table>
+    
+  </div>
+</div>
+
+<script>
+  // Get theme and set chart colors accordingly
+  const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+  
+  const chartColors = {
+    primary: isDarkMode ? '#00ff88' : '#16a34a',
+    secondary: isDarkMode ? '#38bdf8' : '#3b82f6',
+    warning: isDarkMode ? '#fbbf24' : '#f59e0b',
+    danger: isDarkMode ? '#fb7185' : '#ef4444',
+    accent: isDarkMode ? '#d8b4fe' : '#8b5cf6',
+    pink: isDarkMode ? '#f472b6' : '#ec4899',
+    borderColor: isDarkMode ? 'rgba(0, 255, 136, 0.3)' : 'var(--card)',
+    textColor: isDarkMode ? '#e0ffcc' : '#1e293b', // more vibrant in dark
+    labelColor: isDarkMode ? '#00ff88' : '#15803d', // for axis/legend labels
+    gridColor: isDarkMode ? 'rgba(0, 255, 136, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+  };
+
+  const subjectLabels = [{% for subject, count in subjects %}'{{ subject }}'{{ ", " if not loop.last else "" }}{% endfor %}];
+  const subjectData = [{% for subject, count in subjects %}{{ count }}{{ ", " if not loop.last else "" }}{% endfor %}];
+  
+  const diffLabels = [{% for diff, count in difficulty_dist %}'{{ diff }}'{{ ", " if not loop.last else "" }}{% endfor %}];
+  const diffData = [{% for diff, count in difficulty_dist %}{{ count }}{{ ", " if not loop.last else "" }}{% endfor %}];
+
+  const subjectCtx = document.getElementById('subjectChart').getContext('2d');
+  new Chart(subjectCtx, {
+    type: 'doughnut',
+    data: {
+      labels: subjectLabels,
+      datasets: [{
+        data: subjectData,
+        backgroundColor: [chartColors.primary, chartColors.secondary, chartColors.warning, chartColors.danger, chartColors.accent, chartColors.pink],
+        borderColor: chartColors.borderColor,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { 
+        legend: { 
+          position: 'bottom',
+          labels: { color: '#00bfff', font: { weight: 'bold', size: 15 } }
+        } 
+      },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+
+  const diffCtx = document.getElementById('difficultyChart').getContext('2d');
+  new Chart(diffCtx, {
+    type: 'bar',
+    data: {
+      labels: diffLabels,
+      datasets: [{
+        label: 'Question Count',
+        data: diffData,
+        backgroundColor: chartColors.primary,
+        borderColor: chartColors.primary,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: { 
+        y: { 
+          beginAtZero: true,
+          ticks: { color: '#00bfff', font: { weight: 'bold', size: 14 } },
+          grid: { display: false }
+        },
+        x: {
+          ticks: { color: '#00bfff', font: { weight: 'bold', size: 14 } },
+          grid: { display: false }
+        }
+      },
+      plugins: { 
+        legend: { 
+          display: true,
+          labels: { color: '#00bfff' }
+        } 
+      }
+    }
+  });
+  // Bloom Level Chart
+  const bloomLabels = [{% for bloom, count in bloom_dist if bloom %}'{{ bloom }}'{{ ", " if not loop.last else "" }}{% endfor %}];
+  const bloomData = [{% for bloom, count in bloom_dist if bloom %}{{ count }}{{ ", " if not loop.last else "" }}{% endfor %}];
+  const bloomCtx = document.getElementById('bloomChart').getContext('2d');
+  new Chart(bloomCtx, {
+    type: 'bar',
+    data: {
+      labels: bloomLabels,
+      datasets: [{
+        label: 'Questions',
+        data: bloomData,
+        backgroundColor: [chartColors.primary, chartColors.secondary, chartColors.warning, chartColors.danger, chartColors.accent, chartColors.pink],
+        borderColor: chartColors.borderColor,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: '#00bfff' }, grid: { display: false } },
+        x: { ticks: { color: '#00bfff' }, grid: { display: false } }
+      }
+    }
+  });
+
+  // CO Chart
+  const coLabels = [{% for co, count in co_dist if co %}'{{ co }}'{{ ", " if not loop.last else "" }}{% endfor %}];
+  const coData = [{% for co, count in co_dist if co %}{{ count }}{{ ", " if not loop.last else "" }}{% endfor %}];
+  const coCtx = document.getElementById('coChart').getContext('2d');
+  new Chart(coCtx, {
+    type: 'pie',
+    data: {
+      labels: coLabels,
+      datasets: [{
+        data: coData,
+        backgroundColor: [chartColors.primary, chartColors.secondary, chartColors.warning, chartColors.danger, chartColors.accent],
+        borderColor: chartColors.borderColor,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { color: '#00bfff' } } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+
+  // Questions by Topic Chart
+  // Topic codes for chart labels
+  const topicCodes = [{% for topic, count in topics %}'T{{ loop.index0 + 1 }}'{{ ", " if not loop.last else "" }}{% endfor %}];
+  const topicData = [{% for topic, count in topics %}{{ count }}{{ ", " if not loop.last else "" }}{% endfor %}];
+  const topicCtx = document.getElementById('topicChart').getContext('2d');
+  new Chart(topicCtx, {
+    type: 'bar',
+    data: {
+      labels: topicCodes,
+      datasets: [{
+        label: 'Questions',
+        data: topicData,
+        backgroundColor: [chartColors.primary, chartColors.secondary, chartColors.warning, chartColors.danger, chartColors.accent, chartColors.pink],
+        borderColor: chartColors.borderColor,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: '#00bfff', font: { weight: 'bold', size: 14 } }, grid: { display: false } },
+        x: { ticks: { color: '#00bfff', font: { weight: 'bold', size: 14 } }, grid: { display: false } }
+      }
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Paper History{% endblock %}
+
+{% block content %}
+<style>
+  .history-container {
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: var(--card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow);
+  }
+  .history-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .history-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
+  }
+  .history-table th {
+    background: var(--light);
+    padding: 14px 12px;
+    text-align: left;
+    font-weight: 700;
+    border-bottom: 2px solid var(--border);
+    color: var(--text);
+    font-size: 1rem;
+  }
+  .history-table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: 0.98rem;
+    background: var(--card);
+  }
+  .history-table tr:last-child td {
+    border-bottom: none;
+  }
+  .history-table tr:hover td {
+    background: var(--primary-light);
+    transition: background 0.2s;
+  }
+  .action-btns {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .action-btns a, .action-btns button {
+    padding: 0.5rem 1.1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: var(--shadow-sm);
+    outline: none;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .btn-view {
+    background: var(--secondary);
+    color: #fff;
+  }
+  .btn-view:hover {
+    background: var(--secondary-dark);
+  }
+  .btn-download {
+    background: var(--primary);
+    color: #fff;
+  }
+  .btn-download:hover {
+    background: var(--primary-dark);
+  }
+  .btn-delete {
+    background: var(--danger);
+    color: #fff;
+  }
+  .btn-delete:hover {
+    background: #991b1b;
+  }
+  @media (max-width: 900px) {
+    .history-container { padding: 1rem; }
+    .history-table th, .history-table td { padding: 10px 6px; }
+    .history-title { font-size: 1.3rem; }
+  }
+</style>
+
+
+<div class="history-container">
+  <div class="history-title">
+    <i class='bx bx-history'></i>
+    Paper Generation History
+  </div>
+
+
+{% if papers %}
+<table class="history-table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Subject</th>
+      <th>Difficulty</th>
+      <th>Questions</th>
+      <th>Created</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for paper in papers %}
+      <tr>
+        <td>#{{ paper.id }}</td>
+        <td>{{ paper.subject }}</td>
+        <td>{{ paper.difficulty }}/5</td>
+        <td>{{ paper.questions | length }}</td>
+        <td>{{ paper.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>
+          <div class="action-btns">
+            <a href="{{ url_for('paper.review_questions', paper_id=paper.id) }}" class="btn-view"><i class='bx bx-search-alt'></i>Review</a>
+            <a href="{{ url_for('paper.export_paper', paper_id=paper.id) }}" class="btn-download"><i class='bx bx-download'></i>Download</a>
+            <form method="POST" action="{{ url_for('paper.delete_paper', paper_id=paper.id) }}" style="display:inline; margin:0; padding:0;" onsubmit="return confirm('Are you sure you want to delete this paper? This action cannot be undone.');">
+              <button type="submit" class="btn-delete"><i class='bx bx-trash'></i>Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p style="text-align:center; color:var(--text-muted); margin-top:40px; font-size:1.1rem;">No papers generated yet. <a href="{{ url_for('paper.paper_generator') }}" style="color:var(--primary); font-weight:600;">Create one now</a></p>
+{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Add Question{% endblock %}
+
+{% block content %}
+<style>
+  .form-section { background:white; padding:24px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.1); max-width:700px; }
+  .form-group { margin-bottom:20px; }
+  .form-group label { display:block; font-weight:600; margin-bottom:8px; color:#333; }
+  .form-group input[type="text"], .form-group textarea, .form-group select { width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px; background:#fff; color:#222; }
+  .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline:none; border-color:#16a34a; box-shadow:0 0 0 2px rgba(22,163,74,.1); }
+  .form-actions { display:flex; gap:12px; margin-top:24px; }
+  .btn-submit { background:#16a34a; color:white; padding:10px 20px; border-radius:4px; cursor:pointer; border:none; }
+  .btn-cancel { background:#ddd; color:#333; padding:10px 20px; border-radius:4px; cursor:pointer; border:none; text-decoration:none; display:inline-block; }
+
+  /* Dark mode styles */
+  [data-theme="dark"] .form-section {
+    background: #18181b;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+  [data-theme="dark"] .form-group label {
+    color: #e5e7eb;
+  }
+  [data-theme="dark"] .form-group input[type="text"],
+  [data-theme="dark"] .form-group textarea,
+  [data-theme="dark"] .form-group select {
+    background: #23272f;
+    color: #e5e7eb;
+    border: 1px solid #333;
+  }
+  [data-theme="dark"] .form-group input:focus,
+  [data-theme="dark"] .form-group textarea:focus,
+  [data-theme="dark"] .form-group select:focus {
+    border-color: #22d3ee;
+    box-shadow: 0 0 0 2px #22d3ee33;
+  }
+  [data-theme="dark"] .btn-submit {
+    background: #22d3ee;
+    color: #18181b;
+  }
+  [data-theme="dark"] .btn-cancel {
+    background: #23272f;
+    color: #e5e7eb;
+    border: 1px solid #333;
+  }
+</style>
+
+<h2>Add Question to Bank</h2>
+
+<div class="form-section">
+  <form method="post">
+    <div class="form-group">
+      <label for="subject">Subject *</label>
+      <input type="text" id="subject" name="subject" placeholder="e.g., Data Structures" required>
+    </div>
+
+    <div class="form-group">
+      <label for="topic">Topic *</label>
+      <input type="text" id="topic" name="topic" placeholder="e.g., Binary Search Trees" required>
+    </div>
+
+    <div class="form-group">
+      <label for="text">Question Text *</label>
+      <textarea id="text" name="text" rows="6" placeholder="Enter the complete question here..." required></textarea>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="form-group">
+        <label for="marks">Marks *</label>
+        <select id="marks" name="marks">
+          <option value="2">2 Marks</option>
+          <option value="4">4 Marks</option>
+          <option value="8">8 Marks</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="difficulty">Difficulty *</label>
+        <select id="difficulty" name="difficulty">
+          <option value="Easy">Easy</option>
+          <option value="Medium" selected>Medium</option>
+          <option value="Hard">Hard</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="form-group">
+        <label for="bloom_level">Bloom Level</label>
+        <select id="bloom_level" name="bloom_level">
+          <option value="">Auto</option>
+          <option value="Remembering">Remembering</option>
+          <option value="Understanding">Understanding</option>
+          <option value="Applying">Applying</option>
+          <option value="Analyzing">Analyzing</option>
+          <option value="Evaluating">Evaluating</option>
+          <option value="Creating">Creating</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="co_level">Cognitive Level</label>
+        <select id="co_level" name="co_level">
+          <option value="">Auto</option>
+          <option value="CO1">CO1 (Knowledge)</option>
+          <option value="CO2">CO2 (Comprehension)</option>
+          <option value="CO3">CO3 (Application)</option>
+          <option value="CO4">CO4 (Analysis)</option>
+          <option value="CO5">CO5 (Synthesis)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-submit">Save Question</button>
+      <a href="{{ url_for('qb.view_bank') }}" class="btn-cancel">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+

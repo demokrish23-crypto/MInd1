@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Session Logs{% endblock %}
+
+{% block content %}
+<style>
+  .logs-header { margin-bottom:20px; color: var(--text); }
+  .logs-header p { color: var(--text-muted); margin-top: 0.5rem; }
+  .filter-bar { background:var(--card); padding:16px; border-radius:8px; margin-bottom:16px; display:flex; gap:12px; flex-wrap:wrap; border: 1px solid var(--border); }
+  .filter-bar input, .filter-bar select { padding:8px 12px; border:1px solid var(--border); border-radius:4px; background: var(--light); color: var(--text); transition: var(--transition); }
+  .filter-bar input:focus, .filter-bar select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1); }
+  .logs-table { width:100%; border-collapse:collapse; background:var(--card); border-radius:8px; overflow:hidden; box-shadow:var(--shadow); border: 1px solid var(--border); }
+  .logs-table th { background:var(--light); padding:12px; text-align:left; font-weight:600; border-bottom:1px solid var(--border); color: var(--text); }
+  .logs-table td { padding:12px; border-bottom:1px solid var(--border); color: var(--text); }
+  .logs-table tr:hover { background:rgba(0, 255, 136, 0.05); }
+  .role-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+  .role-faculty { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+  .role-admin { background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+  
+  [data-theme="dark"] .role-faculty { background: rgba(59, 130, 246, 0.25); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.5); }
+  [data-theme="dark"] .role-admin { background: rgba(239, 68, 68, 0.25); color: #fb7185; border: 1px solid rgba(239, 68, 68, 0.5); }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--card); padding: 16px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
+  .stat-value { font-size: 1.75rem; font-weight: 700; color: var(--primary); }
+  .stat-label { font-size: 0.875rem; color: var(--text-muted); margin-top: 0.5rem; }
+  .no-data { text-align: center; padding: 40px; color: var(--text-muted); }
+</style>
+
+<div class="logs-header">
+  <h2><i class='bx bx-history' style="color: var(--primary); margin-right: 0.5rem;"></i>Session Logs</h2>
+  <p>Track all faculty and admin logins</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{ total_logs }}</div>
+    <div class="stat-label">Total Logins</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ faculty_logs }}</div>
+    <div class="stat-label">Faculty Logins</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ admin_logs }}</div>
+    <div class="stat-label">Admin Logins</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ unique_users }}</div>
+    <div class="stat-label">Unique Users</div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <input type="text" placeholder="Search by email or name..." id="search-input" style="flex:1; min-width:200px;">
+  <select id="role-filter">
+    <option value="">All Roles</option>
+    <option value="faculty">Faculty</option>
+    <option value="admin">Admin</option>
+  </select>
+  <button id="load-all-btn" class="btn" style="background: var(--secondary); color: white;">Load All Logs</button>
+  <span id="log-info" style="align-self:center; color: var(--text-muted); font-size:0.9rem;">Showing {{ logs|length }} of {{ total_logs }} logins{% if not show_all %} (latest 200){% endif %}</span>
+</div>
+
+{% if logs %}
+<table class="logs-table">
+  <thead>
+    <tr>
+      <th>Email</th>
+      <th>Name</th>
+      <th>Role</th>
+      <th>Login Time</th>
+      <th>Logout Time</th>
+      <th>Duration</th>
+      <th>IP Address</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for log in logs %}
+      <tr class="log-row" data-role="{{ log.role }}" data-email="{{ log.email }}" data-name="{{ log.name }}">
+        <td>{{ log.email }}</td>
+        <td>{{ log.name }}</td>
+        <td>
+          <span class="role-badge role-{{ log.role }}">{{ log.role }}</span>
+        </td>
+        <td>{{ log.login_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>
+          {% if log.logout_time %}
+            {{ log.logout_time.strftime('%Y-%m-%d %H:%M:%S') }}
+          {% else %}
+            <span style="color: var(--text-muted); font-style: italic;">Still logged in</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if log.session_duration_seconds %}
+            {% set hours = log.session_duration_seconds // 3600 %}
+            {% set minutes = (log.session_duration_seconds % 3600) // 60 %}
+            {% set seconds = log.session_duration_seconds % 60 %}
+            {% if hours > 0 %}
+              {{ hours }}h {{ minutes }}m {{ seconds }}s
+            {% elif minutes > 0 %}
+              {{ minutes }}m {{ seconds }}s
+            {% else %}
+              {{ seconds }}s
+            {% endif %}
+          {% else %}
+            <span style="color: var(--text-muted);">-</span>
+          {% endif %}
+        </td>
+        <td style="font-family: monospace; font-size: 0.875rem;">{{ log.ip_address }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="no-data">
+  <i class='bx bx-inbox' style="font-size: 3rem; color: var(--text-muted);"></i>
+  <p style="margin-top: 1rem;">No session logs yet</p>
+</div>
+{% endif %}
+
+<script>
+  const searchInput = document.getElementById('search-input');
+  const roleFilter = document.getElementById('role-filter');
+  
+  function filterLogs() {
+    const search = searchInput.value.toLowerCase();
+    const role = roleFilter.value;
+    
+    document.querySelectorAll('.log-row').forEach(row => {
+      const text = (row.dataset.email + ' ' + row.dataset.name).toLowerCase();
+      const rowRole = row.dataset.role;
+      
+      const matchesSearch = text.includes(search);
+      const matchesRole = !role || rowRole === role;
+      
+      row.style.display = matchesSearch && matchesRole ? '' : 'none';
+    });
+  }
+  
+  searchInput.addEventListener('input', filterLogs);
+  roleFilter.addEventListener('change', filterLogs);
+
+  const loadAllBtn = document.getElementById('load-all-btn');
+  const logInfo = document.getElementById('log-info');
+
+  async function loadAllLogs() {
+    if (!loadAllBtn) return;
+    loadAllBtn.disabled = true;
+    loadAllBtn.textContent = 'Loading...';
+
+    try {
+      const res = await fetch('/admin/session-logs/data');
+      const data = await res.json();
+
+      if (!data.success) {
+        alert('Failed to load all logs: ' + (data.error || 'unknown error'));
+        return;
+      }
+
+      const tbody = document.querySelector('.logs-table tbody');
+      if (!tbody) return;
+
+      tbody.innerHTML = '';
+      data.logs.forEach((log) => {
+        const tr = document.createElement('tr');
+        tr.className = 'log-row';
+        tr.dataset.role = log.role;
+        tr.dataset.email = log.email;
+        tr.dataset.name = log.name;
+
+        const durationSeconds = log.duration_seconds;
+        let durationText = '-';
+        if (durationSeconds) {
+          const hrs = Math.floor(durationSeconds / 3600);
+          const mins = Math.floor((durationSeconds % 3600) / 60);
+          const secs = durationSeconds % 60;
+          durationText = `${hrs > 0 ? hrs + 'h ' : ''}${mins > 0 ? mins + 'm ' : ''}${secs}s`;
+        }
+
+        tr.innerHTML = `
+          <td>${log.email || ''}</td>
+          <td>${log.name || ''}</td>
+          <td><span class="role-badge role-${log.role || 'unknown'}">${log.role || ''}</span></td>
+          <td>${log.login_time ? new Date(log.login_time).toLocaleString() : '-'}</td>
+          <td>${log.logout_time ? new Date(log.logout_time).toLocaleString() : '<span style="color: var(--text-muted); font-style: italic;">Still logged in</span>'}</td>
+          <td>${durationText}</td>
+          <td style="font-family: monospace; font-size: 0.875rem;">${log.ip_address || '-'}</td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+
+      if (logInfo) {
+        logInfo.textContent = `Showing ${data.logs.length} of ${data.total_logs} logins (all)`;
+      }
+
+      filterLogs();
+    } catch (err) {
+      console.error('Error loading full logs:', err);
+      alert('Error loading full logs: ' + err.message);
+    } finally {
+      loadAllBtn.disabled = false;
+      loadAllBtn.textContent = 'Load All Logs';
+    }
+  }
+
+  loadAllBtn.addEventListener('click', loadAllLogs);
+</script>
+
+{% endblock %}

@@ -1,0 +1,812 @@
+{% extends "base.html" %}
+
+{% block title %}Paper Generator{% endblock %}
+
+{% block content %}
+{% if session_expiry_ts %}
+
+{% endif %}
+<style>
+  /* Modern, clean, visually rich, and accessible UI/UX for Paper Generator */
+  :root {
+    --pg-accent: #38bdf8;
+    --pg-bg: #f8fafc;
+    --pg-card: #fff;
+    --pg-dark-bg: #181f2a;
+    --pg-dark-card: #232b3a;
+    --pg-dark-accent: #00ff88;
+    --pg-radius: 1.25rem;
+    --pg-shadow: 0 4px 32px rgba(56,189,248,0.08);
+    --pg-shadow-dark: 0 4px 32px rgba(0,255,136,0.10);
+  }
+  body, [data-theme="light"] {
+    background: var(--pg-bg);
+  }
+  [data-theme="dark"] {
+    background: var(--pg-dark-bg);
+  }
+  .pg-hero {
+    background: linear-gradient(135deg, var(--pg-accent), #22d3ee 80%);
+    color: #fff;
+    border-radius: var(--pg-radius);
+    padding: 2.5rem 2rem 2rem 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--pg-shadow);
+  }
+  [data-theme="dark"] .pg-hero {
+    background: linear-gradient(135deg, #10192b, #38bdf8 80%);
+    color: #e0ffcc;
+    box-shadow: var(--pg-shadow-dark);
+  }
+  .pg-hero-title {
+    font-size: 2.7rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    letter-spacing: -1px;
+  }
+  .pg-hero-subtitle {
+    font-size: 1.15rem;
+    opacity: 0.93;
+    max-width: 600px;
+    margin: 0 auto;
+    font-weight: 500;
+  }
+  .pg-progress {
+    width: 100%;
+    height: 8px;
+    background: #e0f2fe;
+    border-radius: 8px;
+    margin: 2rem 0 1.5rem 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .pg-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--pg-accent), #22d3ee 80%);
+    width: 0%;
+    transition: width 0.4s cubic-bezier(.4,0,.2,1);
+  }
+  [data-theme="dark"] .pg-progress {
+    background: #232b3a;
+  }
+  [data-theme="dark"] .pg-progress-bar {
+    background: linear-gradient(90deg, #00ff88, #38bdf8 80%);
+  }
+  .pg-form-section {
+    background: var(--pg-card);
+    border-radius: var(--pg-radius);
+    box-shadow: var(--pg-shadow);
+    padding: 2.5rem 2rem 2rem 2rem;
+    border: none;
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+  [data-theme="dark"] .pg-form-section {
+    background: var(--pg-dark-card);
+    box-shadow: var(--pg-shadow-dark);
+    color: #e0ffcc;
+  }
+  .pg-form-header {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    margin-bottom: 2.2rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 2px solid #e0f2fe;
+  }
+  [data-theme="dark"] .pg-form-header {
+    border-bottom: 2px solid #38bdf8;
+  }
+  .pg-form-header i {
+    font-size: 2.2rem;
+    color: var(--pg-accent);
+  }
+  [data-theme="dark"] .pg-form-header i {
+    color: #00ff88;
+  }
+  .pg-form-title {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #22223b;
+    margin: 0;
+  }
+  [data-theme="dark"] .pg-form-title {
+    color: #00ff88;
+  }
+  .pg-form-subtitle {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin: 0;
+    font-weight: 500;
+  }
+  [data-theme="dark"] .pg-form-subtitle {
+    color: #a3e635;
+  }
+  .pg-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2.2rem;
+  }
+  .pg-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0;
+    position: relative;
+  }
+  .pg-form-group label {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #22223b;
+  }
+  [data-theme="dark"] .pg-form-group label {
+    color: #e0ffcc;
+  }
+  .pg-form-group input,
+  .pg-form-group textarea {
+    width: 100%;
+    padding: 1rem 1.1rem;
+    border: 2px solid #e0f2fe;
+    border-radius: 0.7rem;
+    font-size: 1rem;
+    font-family: inherit;
+    background: #f8fafc;
+    color: #22223b;
+    transition: border 0.2s, box-shadow 0.2s;
+    outline: none;
+    box-shadow: none;
+  }
+  [data-theme="dark"] .pg-form-group input,
+  [data-theme="dark"] .pg-form-group textarea {
+    background: #232b3a;
+    color: #e0ffcc;
+    border-color: #38bdf8;
+  }
+  .pg-form-group input:focus,
+  .pg-form-group textarea:focus {
+    border-color: var(--pg-accent);
+    box-shadow: 0 0 0 3px rgba(56,189,248,0.10);
+  }
+  [data-theme="dark"] .pg-form-group input:focus,
+  [data-theme="dark"] .pg-form-group textarea:focus {
+    border-color: #00ff88;
+    box-shadow: 0 0 0 3px rgba(0,255,136,0.10);
+  }
+  .pg-form-hint {
+    color: #64748b;
+    font-size: 0.85rem;
+    margin-top: 0.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  [data-theme="dark"] .pg-form-hint {
+    color: #a3e635;
+  }
+  .pg-toggle-btn-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 0.3rem;
+    margin-bottom: 0.2rem;
+  }
+  .pg-toggle-btn {
+    background: #e0f2fe;
+    color: var(--pg-accent);
+    border: 2px solid var(--pg-accent);
+    border-radius: 0.7rem;
+    padding: 0.7rem 1.3rem;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 4px rgba(56,189,248,0.04);
+    outline: none;
+  }
+  .pg-toggle-btn.selected, .pg-toggle-btn:active {
+    background: var(--pg-accent);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(56,189,248,0.10);
+    border-color: var(--pg-accent);
+  }
+  [data-theme="dark"] .pg-toggle-btn {
+    background: #232b3a;
+    color: #00ff88;
+    border-color: #00ff88;
+  }
+  [data-theme="dark"] .pg-toggle-btn.selected, [data-theme="dark"] .pg-toggle-btn:active {
+    background: #00ff88;
+    color: #10192b;
+    border-color: #00ff88;
+  }
+  .pg-range-container {
+    margin-top: 0.5rem;
+  }
+  .pg-range-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  .pg-range-value {
+    font-weight: 700;
+    color: var(--pg-accent);
+    font-size: 1rem;
+  }
+  [data-theme="dark"] .pg-range-value {
+    color: #00ff88;
+  }
+  .pg-range-input {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: #e0f2fe;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    margin-bottom: 0.2rem;
+  }
+  [data-theme="dark"] .pg-range-input {
+    background: #232b3a;
+  }
+  .pg-range-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--pg-accent);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(56,189,248,0.10);
+    transition: var(--transition);
+  }
+  [data-theme="dark"] .pg-range-input::-webkit-slider-thumb {
+    background: #00ff88;
+  }
+  .pg-range-input::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+  }
+  .pg-range-input::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--pg-accent);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(56,189,248,0.10);
+  }
+  [data-theme="dark"] .pg-range-input::-moz-range-thumb {
+    background: #00ff88;
+  }
+  .pg-btn {
+    width: 100%;
+    padding: 1.1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    margin-top: 1.2rem;
+    border-radius: 0.7rem;
+    background: var(--pg-accent);
+    color: #fff;
+    border: none;
+    box-shadow: 0 2px 8px rgba(56,189,248,0.10);
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+  .pg-btn:hover, .pg-btn:focus {
+    background: #0ea5e9;
+    box-shadow: 0 4px 16px rgba(56,189,248,0.18);
+  }
+  [data-theme="dark"] .pg-btn {
+    background: #00ff88;
+    color: #10192b;
+  }
+  [data-theme="dark"] .pg-btn:hover, [data-theme="dark"] .pg-btn:focus {
+    background: #38bdf8;
+    color: #fff;
+  }
+  .pg-error-message {
+    background: #fef2f2;
+    border: 1.5px solid #fecaca;
+    color: #ef4444;
+    padding: 0.9rem;
+    border-radius: 0.7rem;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  [data-theme="dark"] .pg-error-message {
+    background: #2d1a1a;
+    border-color: #fb7185;
+    color: #fb7185;
+  }
+  @media (max-width: 1024px) {
+    .pg-form-section {
+      padding: 2rem 1rem 1.5rem 1rem;
+    }
+    .pg-hero {
+      padding: 2rem 1rem 1.5rem 1rem;
+    }
+  }
+  @media (max-width: 768px) {
+    .pg-hero-title {
+      font-size: 2rem;
+    }
+    .pg-form-section {
+      padding: 1.2rem 0.5rem 1rem 0.5rem;
+    }
+    .pg-form-group input, .pg-form-group textarea {
+      padding: 0.7rem 0.7rem;
+      font-size: 0.95rem;
+    }
+    .pg-btn {
+      padding: 0.8rem 1rem;
+      font-size: 1rem;
+    }
+  }
+</style>
+
+<div class="pg-hero">
+  <h1 class="pg-hero-title">🚀 AI Question Paper Generator</h1>
+  <p class="pg-hero-subtitle">Create intelligent, customized question papers in minutes using advanced AI technology</p>
+  <div class="pg-progress">
+    <div class="pg-progress-bar" id="pg-progress-bar"></div>
+  </div>
+</div>
+
+<div class="pg-form-section">
+  <div class="pg-form-header">
+    <i class='bx bx-plus-circle'></i>
+    <div class="pg-form-header-text">
+      <div class="pg-form-title-group">
+        <h2 class="pg-form-title">Generate New Paper</h2>
+      </div>
+      <p class="pg-form-subtitle" style="margin-top:0.5rem;">Fill in the details below to create your custom question paper</p>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        {% if category == 'error' %}
+          <div class="pg-error-message">
+            <i class='bx bx-error-circle'></i>
+            {{ message }}
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" id="paper-form" class="pg-form">
+    <div class="pg-form-group required">
+      <label for="subject">Subject Name</label>
+      <input type="text" id="subject" name="subject" maxlength="30" placeholder="Max 30 chars" required>
+      <div class="pg-form-hint">
+        <i class='bx bx-info-circle'></i>
+        Enter the official subject name (e.g., "Maths", "Physics"). Max 30 characters. This will appear on the generated paper.
+      </div>
+    </div>
+
+    <div class="pg-form-group">
+      <label for="note">Note <span style="color:var(--text-muted);font-weight:400;">(optional, max 15 chars)</span></label>
+      <input type="text" id="note" name="note" maxlength="15" placeholder="e.g., Midterm">
+      <div class="pg-form-hint">
+        <i class='bx bx-info-circle'></i>
+        Add a short note for context (e.g., "Midterm", "2026"). Optional, max 15 characters. This will be shown on the paper if provided.
+      </div>
+    </div>
+
+    <div class="pg-form-group required">
+      <label for="syllabus">Syllabus Topics</label>
+      <textarea id="syllabus" name="syllabus" rows="6" placeholder="One topic per line (e.g. Arrays, Trees, Graphs)" required></textarea>
+      <div class="pg-form-hint">
+        <i class='bx bx-list-ul'></i>
+        List each topic you want questions from, one per line (e.g., "Arrays", "Trees"). Bullet points/numbering are optional. The AI will use these topics to generate relevant questions.
+      </div>
+    </div>
+
+    <div class="pg-form-group required">
+      <label>Question Types</label>
+      <div class="pg-toggle-btn-group" id="question-types">
+        <button type="button" class="pg-toggle-btn" data-value="2" id="marks-2">2 Marks</button>
+        <button type="button" class="pg-toggle-btn" data-value="4" id="marks-4">4 Marks</button>
+        <button type="button" class="pg-toggle-btn" data-value="8" id="marks-8">8 Marks</button>
+      </div>
+      <input type="hidden" name="marks" id="marks-hidden">
+      <div class="pg-form-hint">
+        <i class='bx bx-check-circle'></i>
+        Select the types of questions to include. You can choose multiple (e.g., both 2 and 4 marks). At least one must be selected.
+      </div>
+    </div>
+
+    <div class="pg-form-group">
+      <label for="difficulty">Difficulty Level</label>
+      <div class="pg-range-container">
+        <div class="pg-range-display">
+          <span>Easy</span>
+          <span class="pg-range-value" id="difficulty-value">Medium (3/5) - 30 questions (approx)</span>
+          <span>Hard</span>
+        </div>
+        <input type="range" id="difficulty" name="difficulty" min="1" max="5" value="3" class="pg-range-input">
+      </div>
+      <div class="pg-form-hint">
+        <i class='bx bx-target-lock'></i>
+        Adjust the slider to set how challenging the questions should be. 1 = Very Easy (10 questions), 5 = Very Hard (50 questions). Default is Medium (3/5).
+      </div>
+    </div>
+
+    <div class="pg-form-group required">
+      <label>Bloom's Level</label>
+      <div class="pg-toggle-btn-group" id="blooms-levels">
+        <button type="button" class="pg-toggle-btn" data-value="Remember">Remember</button>
+        <button type="button" class="pg-toggle-btn" data-value="Understand">Understand</button>
+        <button type="button" class="pg-toggle-btn" data-value="Apply">Apply</button>
+        <button type="button" class="pg-toggle-btn" data-value="Analyze">Analyze</button>
+        <button type="button" class="pg-toggle-btn" data-value="Evaluate">Evaluate</button>
+        <button type="button" class="pg-toggle-btn" data-value="Create">Create</button>
+      </div>
+      <input type="hidden" name="blooms" id="blooms-hidden">
+      <div class="pg-form-hint">
+        <i class='bx bx-bulb'></i>
+        Choose which cognitive levels to include (e.g., "Apply", "Analyze"). You can select multiple. At least one must be selected. These guide the type of questions generated.
+      </div>
+    </div>
+
+    <button type="submit" class="pg-btn">
+      <i class='bx bx-sparkles'></i>
+      Generate Questions
+    </button>
+  </form>
+</div>
+
+  <style>
+    .guide-section {
+      background: var(--pg-card);
+      border-radius: 1.25rem;
+      box-shadow: 0 2px 16px rgba(56,189,248,0.07);
+      padding: 2.2rem 2rem 2.2rem 2rem;
+      margin: 2.5rem 0 1.5rem 0;
+width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+      position: relative;
+      z-index: 1;
+    }
+    [data-theme="dark"] .guide-section {
+      background: var(--pg-dark-card);
+      box-shadow: 0 2px 24px rgba(0,255,136,0.10);
+    }
+    .guide-title {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--pg-accent);
+      margin-bottom: 2.2rem;
+      letter-spacing: -0.5px;
+    }
+    [data-theme="dark"] .guide-title {
+      color: #00ff88;
+    }
+    .guide-title i {
+      font-size: 2rem;
+      color: var(--pg-accent);
+    }
+    [data-theme="dark"] .guide-title i {
+      color: #00ff88;
+    }
+    .guide-steps {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem 2.5rem;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    @media (max-width: 900px) {
+      .guide-steps { grid-template-columns: 1fr; }
+    }
+    .guide-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.2rem;
+      background: linear-gradient(135deg, #f0f9ff 80%, #e0f2fe 100%);
+      border-radius: 1rem;
+      box-shadow: 0 1px 8px rgba(56,189,248,0.06);
+      padding: 1.3rem 1.2rem 1.3rem 1.2rem;
+      position: relative;
+      transition: box-shadow 0.2s, background 0.2s;
+      border-left: 5px solid var(--pg-accent);
+    }
+    .guide-step:hover {
+      box-shadow: 0 4px 24px rgba(56,189,248,0.13);
+      background: linear-gradient(135deg, #e0f2fe 80%, #bae6fd 100%);
+    }
+    [data-theme="dark"] .guide-step {
+      background: linear-gradient(135deg, #10192b 80%, #232b3a 100%);
+      border-left: 5px solid #00ff88;
+      box-shadow: 0 1px 12px rgba(0,255,136,0.10);
+    }
+    [data-theme="dark"] .guide-step:hover {
+      background: linear-gradient(135deg, #232b3a 80%, #10192b 100%);
+      box-shadow: 0 4px 24px rgba(0,255,136,0.18);
+    }
+    .step-number {
+      min-width: 44px;
+      min-height: 44px;
+      background: linear-gradient(135deg, var(--pg-accent), #22d3ee 80%);
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 800;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(56,189,248,0.10);
+      margin-right: 0.7rem;
+      margin-top: 0.1rem;
+      flex-shrink: 0;
+      border: 3px solid #fff;
+      outline: 2px solid var(--pg-accent);
+      outline-offset: -2px;
+    }
+    [data-theme="dark"] .step-number {
+      background: linear-gradient(135deg, #00ff88, #38bdf8 80%);
+      color: #10192b;
+      border: 3px solid #232b3a;
+      outline: 2px solid #00ff88;
+    }
+    .step-content h4 {
+      font-size: 1.13rem;
+      font-weight: 700;
+      color: #22223b;
+      margin: 0 0 0.2rem 0;
+      letter-spacing: 0.01em;
+    }
+    [data-theme="dark"] .step-content h4 {
+      color: #00ff88;
+    }
+    .step-content p {
+      color: #64748b;
+      font-size: 0.97rem;
+      margin: 0;
+      font-weight: 500;
+    }
+    [data-theme="dark"] .step-content p {
+      color: #a3e635;
+    }
+  </style>
+  <div class="guide-section">
+    <h3 class="guide-title">
+      <i class='bx bx-bulb'></i>
+      How It Works
+    </h3>
+    <ol class="guide-steps">
+      <li class="guide-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h4>Enter Subject Details</h4>
+          <p>Provide the subject name and list all syllabus topics you want to cover.</p>
+        </div>
+      </li>
+      <li class="guide-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h4>Select Question Types</h4>
+          <p>Choose the mark distribution (2/4/8 marks) based on your exam pattern.</p>
+        </div>
+      </li>
+      <li class="guide-step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h4>Set Difficulty Level</h4>
+          <p>Adjust the complexity level to match your students' learning stage.</p>
+        </div>
+      </li>
+      <li class="guide-step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h4>AI Generation</h4>
+          <p>Our AI creates unique, relevant questions based on your syllabus topics.</p>
+        </div>
+      </li>
+      <li class="guide-step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <h4>Review & Customize</h4>
+          <p>Select the best questions and finalize your perfect question paper.</p>
+        </div>
+      </li>
+      <li class="guide-step">
+        <div class="step-number">6</div>
+        <div class="step-content">
+          <h4>Export & Save</h4>
+          <p>Download as PDF or save questions to your question bank for future use.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</div>
+
+<script>
+
+// Example: Clear only filter fields (not selected questions)
+// Attach this to your filter clear button (e.g., document.getElementById('clear-filters-btn').onclick = clearFilters;)
+function clearFilters() {
+  // Clear marks filter
+  document.querySelectorAll('#question-types .pg-toggle-btn.selected').forEach(btn => btn.classList.remove('selected'));
+  updateMarksHidden();
+  // Clear Bloom's filter
+  document.querySelectorAll('#blooms-levels .pg-toggle-btn.selected').forEach(btn => btn.classList.remove('selected'));
+  updateBloomsHidden();
+  // Reset difficulty slider to default (optional)
+  difficultySlider.value = 3;
+  difficultySlider.dispatchEvent(new Event('input'));
+  // Optionally clear other filter fields (e.g., search)
+  // document.getElementById('search-input').value = '';
+  // updateSearch();
+  updateProgress();
+}
+
+  // Toggle button logic for marks (multi-select, at least one required, no errors on multiple)
+  const marksBtns = document.querySelectorAll('#question-types .pg-toggle-btn');
+  const marksHidden = document.getElementById('marks-hidden');
+  marksBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      btn.classList.toggle('selected');
+      updateMarksHidden();
+      updateProgress();
+      // Remove error highlight if at least one is selected
+      if (document.querySelectorAll('#question-types .pg-toggle-btn.selected').length > 0) {
+        document.getElementById('question-types').style.border = 'none';
+        document.getElementById('question-types').style.boxShadow = '';
+      }
+    });
+  });
+  function updateMarksHidden() {
+    const selected = Array.from(marksBtns).filter(b => b.classList.contains('selected')).map(b => b.dataset.value);
+    marksHidden.value = selected.join(',');
+  }
+
+  // Toggle button logic for Bloom's levels (multi-select, at least one required)
+  const bloomsBtns = document.querySelectorAll('#blooms-levels .pg-toggle-btn');
+  const bloomsHidden = document.getElementById('blooms-hidden');
+  bloomsBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('selected');
+      updateBloomsHidden();
+      updateProgress();
+      if (document.querySelectorAll('#blooms-levels .pg-toggle-btn.selected').length > 0) {
+        document.getElementById('blooms-levels').style.border = 'none';
+        document.getElementById('blooms-levels').style.boxShadow = '';
+      }
+    });
+  });
+  function updateBloomsHidden() {
+    const selected = Array.from(bloomsBtns).filter(b => b.classList.contains('selected')).map(b => b.dataset.value);
+    bloomsHidden.value = selected.join(',');
+  }
+
+  // Form validation
+  const form = document.getElementById('paper-form');
+  const subjectInput = document.getElementById('subject');
+  const noteInput = document.getElementById('note');
+  const syllabusTextarea = document.getElementById('syllabus');
+  const marksHiddenInput = document.getElementById('marks-hidden');
+  const bloomsHiddenInput = document.getElementById('blooms-hidden');
+
+  form.addEventListener('submit', function(e) {
+    let isValid = true;
+    const missingFields = [];
+    // Remove any existing error message
+    const oldError = form.querySelector('.pg-error-message');
+    if (oldError) oldError.remove();
+
+    // Reset all highlights
+    subjectInput.style.boxShadow = '';
+    subjectInput.style.borderColor = '';
+    document.getElementById('question-types').style.boxShadow = '';
+    document.getElementById('question-types').style.border = 'none';
+    document.getElementById('blooms-levels').style.boxShadow = '';
+    document.getElementById('blooms-levels').style.border = 'none';
+    difficultySlider.style.boxShadow = '';
+    difficultySlider.style.borderColor = '';
+
+    // Subject Name (required, max 30 chars)
+    if (!subjectInput.value.trim() || subjectInput.value.length > 30) {
+      subjectInput.style.borderColor = '#ef4444';
+      subjectInput.style.boxShadow = '0 0 0 3px #fecaca';
+      isValid = false;
+      missingFields.push('Subject Name');
+    } else {
+      subjectInput.style.borderColor = '#22d3ee';
+      subjectInput.style.boxShadow = '';
+    }
+
+
+    // Question Types (marks, at least one required)
+    const selectedMarks = Array.from(document.querySelectorAll('#question-types .pg-toggle-btn.selected'));
+    if (selectedMarks.length < 1) {
+      document.getElementById('question-types').style.border = '2px solid #ef4444';
+      document.getElementById('question-types').style.boxShadow = '0 0 0 3px #fecaca';
+      isValid = false;
+      missingFields.push('Question Type');
+    } else {
+      document.getElementById('question-types').style.border = 'none';
+      document.getElementById('question-types').style.boxShadow = '';
+    }
+
+    // Difficulty (slider can be any value 1-5, always valid)
+    // No validation needed for difficultySlider
+
+    // Bloom's Level (at least one required)
+    const selectedBlooms = Array.from(document.querySelectorAll('#blooms-levels .pg-toggle-btn.selected'));
+    if (selectedBlooms.length < 1) {
+      document.getElementById('blooms-levels').style.border = '2px solid #ef4444';
+      document.getElementById('blooms-levels').style.boxShadow = '0 0 0 3px #fecaca';
+      isValid = false;
+      missingFields.push("Bloom's Level");
+    } else {
+      document.getElementById('blooms-levels').style.border = 'none';
+      document.getElementById('blooms-levels').style.boxShadow = '';
+    }
+
+    if (!isValid) {
+      e.preventDefault();
+      // Show error message
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'pg-error-message';
+      let msg = '<i class="bx bx-error-circle"></i> All fields are required.';
+      if (missingFields.length > 0) {
+        msg += '<br><b>Missing:</b> ' + missingFields.join(', ');
+      }
+      errorDiv.innerHTML = msg;
+      form.prepend(errorDiv);
+      setTimeout(() => errorDiv.remove(), 4000);
+    }
+  });
+
+  // Difficulty slider
+  const difficultySlider = document.getElementById('difficulty');
+  const difficultyValue = document.getElementById('difficulty-value');
+  const difficultyLabels = ['Very Easy', 'Easy', 'Medium', 'Hard', 'Very Hard'];
+  const difficultyQuestions = [10, 20, 30, 40, 50];
+  difficultySlider.addEventListener('input', function() {
+    const value = parseInt(this.value);
+    difficultyValue.textContent = `${difficultyLabels[value-1]} (${value}/5) - ${difficultyQuestions[value-1]} questions (approx)`;
+    updateProgress();
+  });
+
+  // Progress bar logic
+  function updateProgress() {
+    let progress = 0;
+    if (subjectInput.value.trim() && subjectInput.value.length <= 30) progress += 20;
+    if (syllabusTextarea.value.trim()) progress += 20;
+    if (marksHidden.value) progress += 20;
+    if (bloomsHidden.value) progress += 20;
+    if (difficultySlider.value) progress += 20;
+    document.getElementById('pg-progress-bar').style.width = progress + '%';
+  }
+  [subjectInput, syllabusTextarea, noteInput, difficultySlider].forEach(input => {
+    input.addEventListener('input', updateProgress);
+  });
+  updateProgress();
+</script>
+</script>
+{% endblock %}
+

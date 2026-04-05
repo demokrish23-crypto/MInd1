@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Settings{% endblock %}
+
+{% block content %}
+<style>
+  .settings-container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+  .settings-title { color: var(--text); margin-bottom: 2rem; font-size: 2rem; font-weight: 700; display: flex; align-items: center; gap: 1rem; }
+  .settings-title i { color: var(--primary); font-size: 2rem; }
+  
+  .settings-section { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow); }
+  .section-title { color: var(--text); font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
+  .section-title i { color: var(--primary); font-size: 1.5rem; }
+  
+  .form-group { margin-bottom: 1.5rem; }
+  .form-group label { display: block; color: var(--text); font-weight: 500; margin-bottom: 0.5rem; }
+  .form-group input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--light); color: var(--text); transition: var(--transition); }
+  .form-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1); }
+  
+  .info-box { background: rgba(22, 163, 74, 0.1); border-left: 4px solid var(--primary); padding: 1rem; border-radius: 4px; color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
+  
+  .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .stat-card { background: var(--light); padding: 1rem; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+  .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+  .stat-label { font-size: 0.875rem; color: var(--text-muted); margin-top: 0.5rem; }
+  
+  .button-group { display: flex; gap: 1rem; margin-top: 2rem; }
+  .btn { padding: 0.75rem 1.5rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; transition: var(--transition); }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .btn-secondary { background: var(--light); color: var(--text); border: 1px solid var(--border); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+  .btn-secondary:hover { background: var(--border); }
+  
+  .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--light); border-radius: 6px; border: 1px solid var(--border); margin-bottom: 1rem; }
+  .setting-label { color: var(--text); font-weight: 500; }
+  .setting-value { color: var(--text-muted); font-size: 0.875rem; word-break: break-all; max-width: 400px; text-align: right; }
+</style>
+
+
+<div class="settings-container">
+  <h1 class="settings-title">
+    <i class='bx bx-cog'></i>
+    Admin Settings
+  </h1>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="message-list" style="margin-bottom:2rem;">
+        {% for category, message in messages %}
+          <li style="color: {% if category == 'error' %}#dc2626{% elif category=='success' %}#16a34a{% else %}#64748b{% endif %}; font-weight:600;">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <!-- System Statistics -->
+  <div class="settings-section" aria-labelledby="system-stats-title">
+    <h2 class="section-title" id="system-stats-title">
+      <i class='bx bx-bar-chart'></i>
+      System Statistics
+    </h2>
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-value">{{ total_users }}</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ total_questions }}</div>
+        <div class="stat-label">Total Questions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ total_papers }}</div>
+        <div class="stat-label">Papers Generated</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ total_subjects }}</div>
+        <div class="stat-label">Subjects</div>
+      </div>
+    </div>
+  </div>
+
+  <hr style="border: none; border-top: 2px solid var(--border); margin: 2rem 0;">
+  <!-- Admin Profile -->
+  <div class="settings-section" aria-labelledby="admin-profile-title">
+    <h2 class="section-title" id="admin-profile-title">
+      <i class='bx bx-user-circle'></i>
+      Admin Profile
+    </h2>
+    <div class="info-box">
+      <i class='bx bx-info-circle'></i> Update your admin profile and credentials. Changes are persisted to users.txt.
+    </div>
+    <form action="{{ url_for('admin.admin_settings_update') }}" method="post" aria-label="Update Admin Profile">
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" value="{{ user.email }}" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" value="{{ user.name }}" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Leave blank to keep existing password">
+      </div>
+
+      <div class="button-group" style="justify-content: flex-end;">
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary" aria-label="Back to Dashboard">
+          <i class='bx bx-arrow-back'></i> Back to Dashboard
+        </a>
+        <button type="submit" class="btn btn-primary" style="margin-left:1rem;" onclick="return confirm('Are you sure you want to save these settings?');" aria-label="Save Settings">
+          <i class='bx bx-save'></i> Save Settings
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <hr style="border: none; border-top: 2px solid var(--border); margin: 2rem 0;">
+  <!-- System Information -->
+  <div class="settings-section" aria-labelledby="system-info-title">
+    <h2 class="section-title" id="system-info-title">
+      <i class='bx bx-info-circle'></i>
+      System Information
+    </h2>
+    <div class="setting-item">
+      <div class="setting-label">Database Location</div>
+      <div class="setting-value">{{ db_path }}</div>
+    </div>
+    <div class="setting-item">
+      <div class="setting-label">Session Timeout</div>
+      <div class="setting-value">30 days (persistent)</div>
+    </div>
+    <div class="setting-item">
+      <div class="setting-label">Application Name</div>
+      <div class="setting-value">MindForge Question Paper Generator</div>
+    </div>
+    <div class="setting-item">
+      <div class="setting-label">Version</div>
+      <div class="setting-value">1.0.0</div>
+    </div>
+  </div>
+
+  <hr style="border: none; border-top: 2px solid #dc2626; margin: 2rem 0;">
+  <!-- Danger Zone -->
+  <div class="settings-section" aria-labelledby="danger-zone-title" style="border-color: #dc2626; background: rgba(220, 38, 38, 0.08); box-shadow: 0 0 0 2px #dc262622;">
+    <h2 class="section-title" id="danger-zone-title" style="color: #dc2626;">
+      <i class='bx bx-error-circle'></i>
+      Danger Zone
+    </h2>
+    <div class="info-box" style="background: rgba(220, 38, 38, 0.1); border-left-color: #dc2626; color: #dc2626;">
+      <i class='bx bx-exclamation-triangle'></i> <strong>WARNING:</strong> These actions are irreversible and will permanently delete all data.
+    </div>
+    
+    <div style="background: var(--light); padding: 1.5rem; border-radius: 6px; border: 1px solid #dc2626;">
+      <h3 style="color: #dc2626; margin-bottom: 1rem; font-weight: 600;">Delete All Database</h3>
+      <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.875rem;">
+        This will permanently delete all questions, papers, and session logs. The database will be reset to an empty state. This action cannot be undone.
+      </p>
+      
+      <form id="deleteDbForm" method="post" onsubmit="return handleDeleteSubmit(event);">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label for="deletePassword" style="color: #dc2626; font-weight: 600;">Enter Password to Confirm</label>
+          <input 
+            type="password" 
+            id="deletePassword" 
+            name="password" 
+            placeholder="Type the security password" 
+            style="border-color: #dc2626; background: rgba(255, 255, 255, 0.5);"
+            required
+          >
+        </div>
+        
+        <button 
+          type="submit" 
+          class="btn" 
+          style="background: #dc2626; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; transition: var(--transition);"
+          onmouseover="this.style.background='#b91c1c'"
+          onmouseout="this.style.background='#dc2626'"
+        >
+          <i class='bx bx-trash'></i> Delete All Database & Reset
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function handleDeleteSubmit(event) {
+  event.preventDefault();
+  
+  const password = document.getElementById('deletePassword').value;
+  
+  if (!password) {
+    alert('Please enter the password');
+    return false;
+  }
+  
+  const confirmed = confirm(
+    '⚠️ WARNING: This will PERMANENTLY DELETE ALL DATA!\n\n' +
+    'All questions, papers, and session logs will be erased.\n' +
+    'This action CANNOT be undone.\n\n' +
+    'Are you absolutely sure?'
+  );
+  
+  if (!confirmed) {
+    return false;
+  }
+  
+  const finalConfirm = confirm('This is your FINAL warning. Click OK only if you are completely certain.');
+  
+  if (!finalConfirm) {
+    return false;
+  }
+  
+  // Submit the form
+  const form = document.getElementById('deleteDbForm');
+  const action = '/admin/delete-database';
+  
+  fetch(action, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: 'password=' + encodeURIComponent(password)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('✓ Database has been deleted and reset successfully!');
+      window.location.href = '/admin/settings';
+    } else {
+      alert('❌ Error: ' + data.message);
+    }
+  })
+  .catch(error => {
+    alert('❌ Error: ' + error);
+  });
+  
+  return false;
+}
+</script>
+
+{% endblock %}

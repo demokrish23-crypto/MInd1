@@ -1,0 +1,44 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Edit User - Question Paper Generator{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Edit User</h1>
+</div>
+
+<div class="card" style="max-width: 700px;">
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-weight: 600; margin-bottom: 8px;">Full Name <span style="color: red;">*</span></label>
+      <input type="text" name="name" value="Dr. John Doe" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit;">
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-weight: 600; margin-bottom: 8px;">Email <span style="color: red;">*</span></label>
+      <input type="email" name="email" value="john@email.com" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit;">
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-weight: 600; margin-bottom: 8px;">Role <span style="color: red;">*</span></label>
+      <select name="role" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit;">
+        <option value="faculty" selected>Faculty</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+        <input type="checkbox" checked style="width: 18px; height: 18px;">
+        <span>Active</span>
+      </label>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+      <button type="submit" class="btn btn-primary">Update User</button>
+      <a href="{{ url_for('admin.manage_users') }}" class="btn" style="background: #e5e7eb; color: #1f2937;">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

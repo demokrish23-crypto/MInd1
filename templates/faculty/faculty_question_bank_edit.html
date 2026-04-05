@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Question{% endblock %}
+
+{% block content %}
+<style>
+  .form-section { background:white; padding:24px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.1); max-width:700px; }
+  .form-group { margin-bottom:20px; }
+  .form-group label { display:block; font-weight:600; margin-bottom:8px; color:#333; }
+  .form-group input[type="text"], .form-group textarea, .form-group select { width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px; background:#fff; color:#222; }
+  .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline:none; border-color:#16a34a; box-shadow:0 0 0 2px rgba(22,163,74,.1); }
+  .form-actions { display:flex; gap:12px; margin-top:24px; }
+  .btn-submit { background:#16a34a; color:white; padding:10px 20px; border-radius:4px; cursor:pointer; border:none; }
+  .btn-cancel { background:#ddd; color:#333; padding:10px 20px; border-radius:4px; cursor:pointer; border:none; text-decoration:none; display:inline-block; }
+
+  /* Dark mode styles */
+  [data-theme="dark"] .form-section {
+    background: #18181b;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+  [data-theme="dark"] .form-group label {
+    color: #e5e7eb;
+  }
+  [data-theme="dark"] .form-group input[type="text"],
+  [data-theme="dark"] .form-group textarea,
+  [data-theme="dark"] .form-group select {
+    background: #23272f;
+    color: #e5e7eb;
+    border: 1px solid #333;
+  }
+  [data-theme="dark"] .form-group input:focus,
+  [data-theme="dark"] .form-group textarea:focus,
+  [data-theme="dark"] .form-group select:focus {
+    border-color: #22d3ee;
+    box-shadow: 0 0 0 2px #22d3ee33;
+  }
+  [data-theme="dark"] .btn-submit {
+    background: #22d3ee;
+    color: #18181b;
+  }
+  [data-theme="dark"] .btn-cancel {
+    background: #23272f;
+    color: #e5e7eb;
+    border: 1px solid #333;
+  }
+</style>
+
+<h2>Edit Question</h2>
+
+<div class="form-section">
+  <p style="color:#999; margin-bottom:16px;">Question ID: #{{ question.id }}</p>
+  
+  <form method="post">
+    <div class="form-group">
+      <label for="subject">Subject</label>
+      <input type="text" id="subject" name="subject" value="{{ question.subject }}" required>
+    </div>
+
+    <div class="form-group">
+      <label for="topic">Topic</label>
+      <input type="text" id="topic" name="topic" value="{{ question.topic }}" required>
+    </div>
+
+    <div class="form-group">
+      <label for="text">Question Text</label>
+      <textarea id="text" name="text" rows="6" required>{{ question.text }}</textarea>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="form-group">
+        <label for="marks">Marks</label>
+        <select id="marks" name="marks">
+          <option value="2" {% if question.marks == 2 %}selected{% endif %}>2 Marks</option>
+          <option value="4" {% if question.marks == 4 %}selected{% endif %}>4 Marks</option>
+          <option value="8" {% if question.marks == 8 %}selected{% endif %}>8 Marks</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="difficulty">Difficulty</label>
+        <select id="difficulty" name="difficulty">
+          <option value="Easy" {% if question.difficulty == 'Easy' %}selected{% endif %}>Easy</option>
+          <option value="Medium" {% if question.difficulty == 'Medium' %}selected{% endif %}>Medium</option>
+          <option value="Hard" {% if question.difficulty == 'Hard' %}selected{% endif %}>Hard</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="form-group">
+        <label for="bloom_level">Bloom Level</label>
+        <select id="bloom_level" name="bloom_level">
+          <option value="" {% if not question.bloom_level %}selected{% endif %}>Auto</option>
+          <option value="Remembering" {% if question.bloom_level == 'Remembering' %}selected{% endif %}>Remembering</option>
+          <option value="Understanding" {% if question.bloom_level == 'Understanding' %}selected{% endif %}>Understanding</option>
+          <option value="Applying" {% if question.bloom_level == 'Applying' %}selected{% endif %}>Applying</option>
+          <option value="Analyzing" {% if question.bloom_level == 'Analyzing' %}selected{% endif %}>Analyzing</option>
+          <option value="Evaluating" {% if question.bloom_level == 'Evaluating' %}selected{% endif %}>Evaluating</option>
+          <option value="Creating" {% if question.bloom_level == 'Creating' %}selected{% endif %}>Creating</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="co_level">Cognitive Level</label>
+        <select id="co_level" name="co_level">
+          <option value="" {% if not question.co_level %}selected{% endif %}>Auto</option>
+          <option value="CO1" {% if question.co_level == 'CO1' %}selected{% endif %}>CO1 (Knowledge)</option>
+          <option value="CO2" {% if question.co_level == 'CO2' %}selected{% endif %}>CO2 (Comprehension)</option>
+          <option value="CO3" {% if question.co_level == 'CO3' %}selected{% endif %}>CO3 (Application)</option>
+          <option value="CO4" {% if question.co_level == 'CO4' %}selected{% endif %}>CO4 (Analysis)</option>
+          <option value="CO5" {% if question.co_level == 'CO5' %}selected{% endif %}>CO5 (Synthesis)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-submit">Update Question</button>
+      <a href="{{ url_for('qb.view_bank') }}" class="btn-cancel">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+

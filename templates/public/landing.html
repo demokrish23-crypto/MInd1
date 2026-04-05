@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>AI Question Paper Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  
+  <link rel="stylesheet" href="static/css/landing.css">
+</head>
+
+<body>
+  <button id="scrollTopBtn" aria-label="Scroll to top" title="Back to top">
+    <i class='bx bx-chevron-up'></i>
+  </button>
+
+  <nav class="navbar">
+    <a href="#" class="nav-logo">
+      <i class='bx bx-brain'></i>
+      MindForge
+    </a>
+    <a href="/login"><button class="primary-btn">Login</button></a>
+  </nav>
+
+  <header class="hero reveal" id="hero-section" tabindex="0" aria-label="Hero section">
+    <h1>AI Question Paper Generator</h1>
+    <p class="hero-subtitle">
+      Intelligent, Secure & Curriculum-Aligned Assessment Creation
+    </p>
+    <div class="hero-buttons">
+      <a href="/login"><button class="primary-btn">Get Started</button></a>
+      <a href="#learn_more"><button class="secondary-btn">Learn More</button></a>
+    </div>
+    <div id="hero-border"></div>
+  </header>
+
+  <main>
+    <section class="stats reveal">
+      <div class="stat">
+        <h2 class="counter" data-target="500">0</h2>
+        <p>Papers Generated</p>
+      </div>
+      <div class="stat">
+        <h2 class="counter" data-target="95">0</h2>
+        <p>% Relevance</p>
+      </div>
+      <div class="stat">
+        <h2 class="counter" data-target="200">0</h2>
+        <p>Faculty Hours Saved</p>
+      </div>
+    </section>
+
+
+    <section class="section reveal" id="learn_more">
+      <h2>What is an AI Question Paper Generator?</h2>
+      <p>
+        It is an intelligent automated tool that uses AI and ML algorithms to create
+        examination questions, quizzes, and complete test papers from your input content.
+      </p>
+    </section>
+
+    <section class="mindforge">
+      <div class="container">
+        <header class="mf-header">
+          <h1 style="display:flex;align-items:center;justify-content:center;gap:0.6rem;font-size:2.2rem;">
+            <span
+              style="display:inline-flex;align-items:center;background:linear-gradient(90deg,#16a34a,#6366f1);border-radius:50%;padding:0.3rem 0.5rem 0.3rem 0.4rem;margin-right:0.3rem;">
+              <i class='bx bx-brain' style="font-size:2.1rem;color:#fff;"></i>
+            </span>
+            MindForge – AI Question Paper Generator
+          </h1>
+          <p class="tagline">Transform Assessments with AI</p>
+          <p class="intro">
+            MindForge uses advanced LLMs to convert textbooks, PDFs, or lecture notes
+            into syllabus-aligned, secure, and balanced question papers in minutes.
+          </p>
+        </header>
+        <div class="mf-grid">
+          <div class="mf-card">
+            <h2>Key Capabilities</h2>
+            <ul>
+              <li>Contextual Analysis from source material</li>
+              <li>Difficulty scaling (Easy → Hard)</li>
+              <li>Bloom’s Taxonomy mapping</li>
+              <li>Instant export to PDF, Word, Forms</li>
+            </ul>
+          </div>
+          <div class="mf-card">
+            <h2>Benefits of AI</h2>
+            <ul>
+              <li>Minutes instead of hours</li>
+              <li>Consistent quality & balance</li>
+              <li>Multiple unique paper sets</li>
+              <li>Blueprint-based syllabus coverage</li>
+            </ul>
+          </div>
+          <div class="mf-card">
+            <h2>Paper Creation Flow</h2>
+            <ol>
+              <li>Define subject & topics</li>
+              <li>Set difficulty distribution</li>
+              <li>Select learner level</li>
+              <li>Choose exam objective</li>
+              <li>Upload syllabus (RAG)</li>
+              <li>Review & export</li>
+            </ol>
+          </div>
+          <div class="mf-card">
+            <h2>Challenges Solved</h2>
+            <ul>
+              <li>Irrelevant questions → syllabus grounding</li>
+              <li>Poor difficulty → Bloom’s tuning</li>
+              <li>Leaks → unique paper variants</li>
+              <li>Faculty adoption → time savings</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section reveal" id="learn_more">
+      <h2>Why MindForge?</h2>
+      <p>
+        MindForge is designed to empower educators with a powerful, easy-to-use tool that
+        transforms the way assessments are created. By leveraging AI, it saves time,
+        ensures quality, and enhances the relevance of question papers, ultimately
+        improving the assessment experience for both faculty and students.
+      </p>
+    </section>
+
+    <section class="dev">
+
+      <section class="section highlight reveal">
+        <h2>Meet the Developers</h2>
+
+        <div class="dev-grid">
+
+          <div class="dev-card">
+            <img src="/static/media/chaitanya.jpeg" alt="Chaitanya">
+            <div>
+              <h3>Chaitanya Purohit</h3>
+              <p>Backend Developer</p>
+            </div>
+          </div>
+
+          <div class="dev-card">
+            <img src="/static/media/khushi.jpeg" alt="Khushi">
+            <div>
+              <h3>Khushi</h3>
+              <p>Frontend Developer</p>
+            </div>
+          </div>
+
+          <div class="dev-card">
+            <img src="/static/media/krritika.jpeg" alt="Krritika">
+            <div>
+              <h3>Krritika</h3>
+              <p>Frontend Developer</p>
+            </div>
+          </div>
+
+          <div class="dev-card">
+            <img src="/static/media/kunal.jpeg" alt="Kunal">
+            <div>
+              <h3>Kunal</h3>
+              <p>Backend Developer</p>
+            </div>
+          </div>
+
+          <div class="dev-card">
+            <img src="/static/media/gungun.jpeg" alt="Gungun  ">
+            <div>
+              <h3>Gungun</h3>
+              <p>UI/UX Designer</p>
+            </div>
+          </div>
+
+          <div class="dev-card">
+            <img src="/static/media/gursimar.jpeg" alt="Gursimar">
+            <div>
+              <h3>Gursimar</h3>
+              <p>Research & Documentation</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="section reveal">
+      <h2>Faculty Reviews</h2>
+      <div class="review">
+        <div class="review-card"><img src="static/media/Dr. A. Sharma.jpg " alt="Dr. A. Sharma">
+          <h4>Dr. A. Sharma</h4><span>Professor</span>
+          <p>Saved me over 200 hours every year.</p>
+        </div>
+        <div class="review-card"><img src="static/media/Prof. R. Mehta.jpg" alt="Prof. R. Mehta ">
+          <h4>Prof. R. Mehta</h4><span>Faculty</span>
+          <p>Bloom’s taxonomy integration is excellent.</p>
+        </div>
+        <div class="review-card"><img src="static/media/Dr. S. Verma.avif" alt="Dr. S. Verma">
+          <h4>Dr. S. Verma</h4><span>HOD</span>
+          <p>Perfect for semester exams.</p>
+        </div>
+        <div class="review-card"><img src="static/media/Prof. K. Rao.avif" alt="Prof. K. Rao ">
+          <h4>Prof. K. Rao</h4><span>Lecturer</span>
+          <p>Highly accurate questions.</p>
+        </div>
+        <div class="review-card"><img src="static/media/Dr. L. Singh.avif" alt="Dr. L. Singh">
+          <h4>Dr. L. Singh</h4><span>Math Faculty</span>
+          <p>Balanced and fair papers.</p>
+        </div>
+        <div class="review-card"><img src="static/media/Prof. P. Gupta.avif" alt="Prof. P. Gupta ">
+          <h4>Prof. P. Gupta</h4><span>Physics</span>
+          <p>Massive time saver.</p>
+        </div>
+        <div class="review-card"><img src="static/media/Dr. N. Das.jpg" alt="Dr. N. Das">
+          <h4>Dr. N. Das</h4><span>Biology</span>
+          <p>Excellent topic coverage.</p>
+        </div>
+        <div class="review-card"><img src="static/media/Prof. T. Iyer.jpg" alt="Prof. T. Iyer ">
+          <h4>Prof. T. Iyer</h4><span>CS</span>
+          <p>Students love the variety.</p>
+        </div>
+        <div class="review-card"><img src="static/media/Dr. M. Khan.jpg" alt="Dr. M. Khan">
+          <h4>Dr. M. Khan</h4><span>Engineering</span>
+          <p>Reduces question bias.</p>
+        </div>
+        <div class="review-card"><img src="static/media/Prof. R. Patel.webp" alt="Prof. R. Patel ">
+          <h4>Prof. R. Patel</h4><span>Economics</span>
+          <p>Maintains integrity.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+
+  <footer>
+    <p>&copy; 2026 AI Question Paper Generator. All rights reserved. | Mindforge  | <a href="#privacy">Privacy Policy</a> |
+      <a href="#terms">Terms of Service</a></p>
+  </footer>
+
+  <script>
+
+    const scrollBtn = document.getElementById('scrollTopBtn');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        scrollBtn.classList.add('show');
+      } else {
+        scrollBtn.classList.remove('show');
+      }
+    });
+    scrollBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+
+    const reviewCarousel = document.querySelector('.review');
+    if (reviewCarousel) {
+      reviewCarousel.setAttribute('tabindex', '0');
+      reviewCarousel.setAttribute('aria-label', 'Faculty reviews carousel');
+      reviewCarousel.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') {
+          reviewCarousel.scrollLeft += 300;
+        } else if (e.key === 'ArrowLeft') {
+          reviewCarousel.scrollLeft -= 300;
+        }
+      });
+      const autoScrollSpeed = 2; 
+      let scrollAnimationId = null;
+      const animateScroll = () => {
+        if (!reviewCarousel || reviewCarousel.scrollWidth <= reviewCarousel.clientWidth) {
+          scrollAnimationId = requestAnimationFrame(animateScroll);
+          return;
+        }
+        reviewCarousel.scrollLeft += autoScrollSpeed;
+        if (reviewCarousel.scrollLeft + reviewCarousel.clientWidth >= reviewCarousel.scrollWidth - 1) {
+          reviewCarousel.scrollLeft = 0;
+        }
+        scrollAnimationId = requestAnimationFrame(animateScroll);
+      };
+      const stopAutoScroll = () => {
+        if (scrollAnimationId !== null) {
+          cancelAnimationFrame(scrollAnimationId);
+          scrollAnimationId = null;
+        }
+      };
+      const startAutoScroll = () => {
+        if (scrollAnimationId === null) {
+          scrollAnimationId = requestAnimationFrame(animateScroll);
+        }
+      };
+      reviewCarousel.addEventListener('mouseenter', stopAutoScroll);
+      reviewCarousel.addEventListener('mouseleave', startAutoScroll);
+      startAutoScroll();
+    }
+
+
+    const counters = document.querySelectorAll('.counter');
+    const runCounter = () => {
+      counters.forEach((counter) => {
+        const target = +counter.getAttribute('data-target');
+        let count = 0;
+        const increment = target / 200;
+        const updateCount = () => {
+          count += increment;
+          if (count < target) {
+            counter.textContent = Math.ceil(count);
+            setTimeout(updateCount, 10);
+          } else {
+            counter.textContent = target;
+          }
+        };
+        updateCount();
+      });
+    };
+
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          if (entry.target.classList.contains('stats')) {
+            runCounter();
+          }
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+  </script>
+</body>
+
+</html>

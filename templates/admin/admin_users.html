@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<style>
+  .users-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; color: var(--text); }
+  .users-header h2 { color: var(--text); }
+  .btn-add { background:var(--primary); color:white; padding:10px 16px; border-radius:4px; text-decoration:none; transition: var(--transition); }
+  .btn-add:hover { background:var(--primary-dark); transform: translateY(-2px); }
+  .users-table { width:100%; border-collapse:collapse; background:var(--card); border-radius:8px; overflow:hidden; box-shadow:var(--shadow); border: 1px solid var(--border); }
+  .users-table th { background:var(--light); padding:12px; text-align:left; font-weight:600; border-bottom:1px solid var(--border); color: var(--text); }
+  .users-table td { padding:12px; border-bottom:1px solid var(--border); color: var(--text); }
+  .users-table tr:hover { background:rgba(0,255,136,0.05); }
+  .badge-admin { background:rgba(239,68,68,0.2); color:var(--danger); padding:4px 8px; border-radius:4px; font-size:12px; border: 1px solid rgba(239,68,68,0.4); }
+  .badge-faculty { background:rgba(22,163,74,0.2); color:var(--primary); padding:4px 8px; border-radius:4px; font-size:12px; border: 1px solid rgba(22,163,74,0.4); }
+  .actions { display:flex; gap:8px; }
+  .actions a, .actions button { padding:6px 12px; border-radius:4px; text-decoration:none; cursor:pointer; border:none; font-size:12px; transition: var(--transition); }
+  .action-edit { background:var(--secondary); color:white; }
+  .action-edit:hover { background:var(--secondary-dark); transform: translateY(-1px); }
+  .action-delete { background:var(--danger); color:white; }
+  .action-delete:hover { background:#dc2626; transform: translateY(-1px); }
+  .no-users-message { text-align:center; color:var(--text-muted); margin-top:40px; font-size: 1rem; }
+</style>
+
+<div class="users-header">
+  <h2>Manage Users</h2>
+  <a href="{{ url_for('admin.add_user') }}" class="btn-add">+ Add New User</a>
+</div>
+
+{% if users %}
+<table class="users-table">
+  <thead>
+    <tr>
+      <th>Email</th>
+      <th>Name</th>
+      <th>Role</th>
+      <th>Password</th>
+      <th>Questions</th>
+      <th>Papers</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in users %}
+      <tr>
+        <td>{{ user.email }}</td>
+        <td>{{ user.name }}</td>
+        <td>
+          <span class="{% if user.role == 'admin' %}badge-admin{% else %}badge-faculty{% endif %}">
+            {{ user.role | upper }}
+          </span>
+        </td>
+        <td>
+          <span class="user-password" id="pw-{{ loop.index }}"></span>
+          <button type="button" class="view-pw-btn" onclick="showPassword({{ loop.index }}, '{{ user.password }}', '{{ user.role }}')">View</button>
+        </td>
+        <style>
+          .view-pw-btn {
+            background: #e0e7ef;
+            color: #222;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            padding: 2px 10px;
+            font-size: 12px;
+            margin-left: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+          }
+          .view-pw-btn:hover { background: #bae6fd; }
+          .pw-modal {
+            position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; z-index: 9999;
+          }
+          .pw-modal-content {
+            background: #fff; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 24px #0004; min-width: 320px; text-align: center; color: #181f2a;
+            transition: background 0.2s, color 0.2s;
+          }
+          .pw-modal-content input { padding: 8px; border-radius: 4px; border: 1.5px solid #38bdf8; margin-bottom: 1rem; width: 80%; background: #f8fafc; color: #181f2a; }
+          .pw-modal-content button { margin: 0 8px; padding: 6px 18px; border-radius: 4px; border: none; background: #38bdf8; color: #fff; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+          .pw-modal-content button.cancel { background: #ddd; color: #222; }
+          @media (prefers-color-scheme: dark) {
+            .pw-modal-content { background: #232b3a; color: #e0ffcc; box-shadow: 0 2px 32px #00ff8822; }
+            .pw-modal-content input { background: #232b3a; color: #e0ffcc; border-color: #38bdf8; }
+            .pw-modal-content button { background: #00ff88; color: #10192b; }
+            .pw-modal-content button.cancel { background: #232b3a; color: #e0ffcc; border: 1px solid #38bdf8; }
+          }
+          [data-theme="dark"] .pw-modal-content {
+            background: #232b3a !important; color: #e0ffcc !important; box-shadow: 0 2px 32px #00ff8822 !important;
+          }
+          [data-theme="dark"] .pw-modal-content input {
+            background: #232b3a !important; color: #e0ffcc !important; border-color: #38bdf8 !important;
+          }
+          [data-theme="dark"] .pw-modal-content button {
+            background: #00ff88 !important; color: #10192b !important;
+          }
+          [data-theme="dark"] .pw-modal-content button.cancel {
+            background: #232b3a !important; color: #e0ffcc !important; border: 1px solid #38bdf8 !important;
+          }
+        </style>
+        <script>
+        function showPassword(idx, pw, role) {
+          // Modal prompt for viewme password
+          const modal = document.createElement('div');
+          modal.className = 'pw-modal';
+          modal.innerHTML = `
+            <div class="pw-modal-content">
+              <h3>Enter View Password</h3>
+              <input type="password" id="pw-check-input" placeholder="Password">
+              <div style="margin-top:1rem;">
+                <button onclick="checkPw(${idx}, '${pw}')">View</button>
+                <button class='cancel' onclick="this.closest('.pw-modal').remove()">Cancel</button>
+              </div>
+              <div id="pw-error-msg" style="color:#dc2626;margin-top:0.7rem;font-size:0.97em;"></div>
+            </div>
+          `;
+          document.body.appendChild(modal);
+          document.getElementById('pw-check-input').focus();
+        }
+        function checkPw(idx, pw) {
+          const input = document.getElementById('pw-check-input');
+          const errorMsg = document.getElementById('pw-error-msg');
+          if (input.value === 'viewme') {
+            document.getElementById('pw-' + idx).textContent = pw;
+            document.querySelector('.pw-modal').remove();
+          } else {
+            errorMsg.textContent = 'Incorrect password.';
+            input.value = '';
+            input.focus();
+          }
+        }
+        </script>
+        <td>{{ user.question_count }}</td>
+        <td>{{ user.paper_count }}</td>
+        <td>
+          <div class="actions">
+            <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="action-edit">Edit</a>
+            <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="post" style="display:inline;">
+              <button class="action-delete" onclick="return confirm('Delete this user? Cannot be undone.')">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="no-users-message">No users found.</p>
+{% endif %}
+
+{% endblock %}

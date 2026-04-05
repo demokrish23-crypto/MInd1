@@ -1,0 +1,49 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Admin Settings - Question Paper Generator{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">System Settings</h1>
+</div>
+
+<div style="max-width: 700px;">
+  <div class="card">
+    <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">System Configuration</h2>
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-weight: 600; margin-bottom: 8px;">Application Name</label>
+      <input type="text" value="Question Paper Generator" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit;">
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-weight: 600; margin-bottom: 8px;">Maximum Upload Size (MB)</label>
+      <input type="number" value="16" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit; max-width: 200px;">
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-weight: 600; margin-bottom: 8px;">Session Timeout (minutes)</label>
+      <input type="number" value="60" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit; max-width: 200px;">
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+        <input type="checkbox" checked style="width: 18px; height: 18px;">
+        <span>Enable API endpoints</span>
+      </label>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+        <input type="checkbox" checked style="width: 18px; height: 18px;">
+        <span>Enable email notifications</span>
+      </label>
+    </div>
+
+    <button class="btn btn-primary">Save Settings</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

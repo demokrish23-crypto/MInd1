@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>MindForge - Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="static/css/login.css">
+</head>
+
+<body class="faculty">
+  <div class="bg-shape"></div>
+  <div class="bg-shape"></div>
+  <div class="bg-shape"></div>
+
+  {% if error %}
+  <div class="toast" id="login-error-toast" tabindex="0" role="alert" aria-live="assertive">
+    <i class='bx bx-error-circle'></i>
+    {{ error }}
+    <button class="toast-close" onclick="this.parentElement.style.display='none'" aria-label="Close">&times;</button>
+  </div>
+  {% endif %}
+
+  <div class="login-card {% if error %}shake{% endif %}">
+    <div class="login-header">
+      <div class="logo">
+        <i class='bx bx-brain'></i>
+        MindForge
+      </div>
+      <h1 class="login-title">Welcome Back</h1>
+      <p class="login-subtitle">Sign in to your account to continue</p>
+    </div>
+
+    <form method="POST" id="loginForm">
+      <div class="role-switch">
+        <button type="button" class="role-btn active" onclick="setRole('faculty', this)">
+          <i class='bx bx-chalkboard'></i>
+          Faculty
+        </button>
+        <button type="button" class="role-btn" disabled>
+          <i class='bx bx-user'></i>
+          Student
+        </button>
+        <button type="button" class="role-btn" onclick="setRole('admin', this)">
+          <i class='bx bx-cog'></i>
+          Admin
+        </button>
+      </div>
+
+      <input type="hidden" name="role" id="role" value="faculty">
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <div class="input-wrapper">
+          <i class='bx bx-envelope input-icon'></i>
+          <input type="email" id="email" name="email" class="form-input" placeholder="Enter your email" required value="{{ email_restore|default('') }}">
+        </div>
+      </div>
+
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper password-wrapper">
+          <i class='bx bx-lock-alt input-icon'></i>
+          <input type="password" id="password" name="password" class="form-input {% if error %}error{% endif %}"
+            placeholder="Enter your password" required autocomplete="current-password">
+          <span class="eye-toggle" onclick="togglePassword(this)">
+            <i class='bx bx-hide'></i>
+          </span>
+        </div>
+      </div>
+
+      <button class="login-btn" type="submit">
+        <i class='bx bx-log-in'></i>
+        <span>Sign In</span>
+      </button>
+
+
+      <div class="auth-wait" id="authWait">
+        <i class='bx bx-loader-alt bx-spin'></i>
+        Authenticating...
+      </div>
+    </form>
+
+
+    <script>
+      let submitting = false;
+      let cachedEmail = "";
+
+
+      document.getElementById("loginForm").addEventListener("submit", function (e) {
+        if (submitting) return;
+
+        e.preventDefault();
+        submitting = true;
+
+        cachedEmail = document.getElementById("email").value;
+
+        document.getElementById("authWait").classList.add("show");
+        document.querySelector(".login-btn").classList.add("loading");
+        document.querySelector(".login-btn").innerHTML = '<i class="bx bx-loader-alt bx-spin"></i><span>Signing In...</span>';
+        setTimeout(() => this.submit(), 2000);
+      });
+
+
+      function setRole(role, el) {
+        document.body.className = role;
+        document.getElementById("role").value = role;
+
+        document.querySelectorAll(".role-btn").forEach(b => b.classList.remove("active"));
+        el.classList.add("active");
+
+
+        document.getElementById("password").value = "";
+        document.getElementById("password").classList.remove("error");
+        document.getElementById("authWait").classList.remove("show");
+        document.querySelector(".login-btn").classList.remove("loading");
+        document.querySelector(".login-btn").innerHTML = '<i class="bx bx-log-in"></i><span>Sign In</span>';
+        submitting = false;
+      }
+
+      function togglePassword(el) {
+        const input = document.getElementById("password");
+        const icon = el.querySelector('i');
+
+        if (input.type === "password") {
+          input.type = "text";
+          icon.className = "bx bx-show";
+        } else {
+          input.type = "password";
+          icon.className = "bx bx-hide";
+        }
+
+        el.classList.toggle("open");
+      }
+
+      {% if error %}
+      submitting = false;
+      document.getElementById("password").value = "";
+      document.getElementById("authWait").classList.remove("show");
+      document.querySelector(".login-btn").classList.remove("loading");
+      document.querySelector(".login-btn").innerHTML = '<i class="bx bx-log-in"></i><span>Sign In</span>';
+      // Focus error toast for accessibility
+      const toast = document.getElementById("login-error-toast");
+      if (toast) toast.focus();
+          // Allow closing error toast with Escape key
+          document.addEventListener('keydown', function(e) {
+            const toast = document.getElementById('login-error-toast');
+            if (toast && toast.style.display !== 'none' && (e.key === 'Escape' || e.key === 'Esc')) {
+              toast.style.display = 'none';
+            }
+          });
+        // If error toast exists, focus it for accessibility
+        document.addEventListener('DOMContentLoaded', () => {
+          const toast = document.getElementById('login-error-toast');
+          if (toast) toast.focus();
+        });
+      {% endif %}
+
+      document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('email').focus();
+      });
+    </script>
+</body>
+
+</html>

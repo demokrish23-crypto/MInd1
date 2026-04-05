@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block title %}Faculty Dashboard{% endblock %}
+
+{% block content %}
+<style>
+  .welcome-section {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .welcome-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+  }
+
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .welcome-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .welcome-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .welcome-subtitle {
+    opacity: 0.9;
+    font-size: 1.125rem;
+  }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .kpi-card {
+    background: var(--card);
+    padding: 2rem;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    text-align: center;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+  }
+
+  .kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .kpi-card h3 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 1rem 0 0.5rem 0;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .kpi-card p {
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .action-card {
+    background: var(--card);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .action-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, var(--primary-light), transparent);
+    opacity: 0;
+    transition: var(--transition);
+  }
+
+  .action-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .action-card:hover::before {
+    opacity: 1;
+  }
+
+  .action-card i {
+    font-size: 2.5rem;
+    color: var(--primary);
+    transition: var(--transition);
+  }
+
+  .action-card:hover i {
+    transform: scale(1.1);
+    color: var(--primary-dark);
+  }
+
+  .action-card span {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 1rem;
+  }
+
+  .guide-section {
+    background: linear-gradient(135deg, var(--light), var(--card));
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    border: 1px solid var(--border);
+  }
+
+  .guide-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .guide-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .guide-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    transition: var(--transition);
+    color: var(--text);
+  }
+
+  .guide-item:hover {
+    box-shadow: var(--shadow);
+    transform: translateX(4px);
+  }
+
+  .guide-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .guide-icon.generate { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+  .guide-icon.add { background: linear-gradient(135deg, var(--secondary), #4f46e5); }
+  .guide-icon.analytics { background: linear-gradient(135deg, var(--accent), #d97706); }
+  .guide-icon.history { background: linear-gradient(135deg, var(--success), #059669); }
+  .guide-icon.settings { background: linear-gradient(135deg, var(--warning), #d97706); }
+
+  .guide-content h4 {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+  }
+
+  .guide-content p {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 768px) {
+    .welcome-title {
+      font-size: 1.5rem;
+    }
+
+    .kpi-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .quick-actions {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .guide-item {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+</style>
+
+
+{% set session_expiry_ts = session_expiry_ts %}
+<div class="welcome-section">
+  <div class="welcome-content">
+    <h1 class="welcome-title">Welcome back, {{ faculty_name }}! 👋</h1>
+    <p class="welcome-subtitle">Ready to create amazing question papers with AI assistance?</p>
+  </div>
+</div>
+
+<section class="kpi-grid">
+  <div class="kpi-card">
+    <h3>{{ total_questions }}</h3>
+    <p>Total Questions</p>
+  </div>
+  <div class="kpi-card">
+    <h3>{{ average_questions_per_paper }}</h3>
+    <p>Avg Questions/Paper</p>
+  </div>
+  <div class="kpi-card">
+    <h3>{{ total_subjects }}</h3>
+    <p>Subjects Covered</p>
+  </div>
+  <div class="kpi-card">
+    <h3>{{ total_papers }}</h3>
+    <p>Papers Generated</p>
+  </div>
+</section>
+
+<section class="quick-actions">
+  <a class="action-card" href="{{ url_for('qb.add_question') }}">
+    <i class='bx bx-brain'></i>
+    <span>Add Questions</span>
+  </a>
+  <a class="action-card" href="{{ url_for('paper.paper_generator') }}">
+    <i class='bx bx-plus-circle'></i>
+    <span>Generate Paper</span>
+  </a>
+  
+  <a class="action-card" href="{{ url_for('faculty_history') }}">
+    <i class='bx bx-file'></i>
+    <span>View History</span>
+  </a>
+  <a class="action-card" href="{{ url_for('faculty_analytics') }}">
+    <i class='bx bx-chart'></i>
+    <span>Analytics</span>
+  </a>
+</section>
+
+<section class="guide-section">
+  <h2 class="guide-title">
+    <i class='bx bx-bulb' style="color: var(--accent); font-size: 1.5rem;"></i>
+    Quick Start Guide
+  </h2>
+  <ul class="guide-list">
+    <li class="guide-item">
+      <div class="guide-icon generate">📄</div>
+      <div class="guide-content">
+        <h4>Generate Paper</h4>
+        <p>Create AI-powered question papers by uploading syllabus topics. Choose question types and difficulty levels.</p>
+      </div>
+    </li>
+    <li class="guide-item">
+      <div class="guide-icon add">➕</div>
+      <div class="guide-content">
+        <h4>Add Questions</h4>
+        <p>Build your question bank manually or import from existing papers. Organize by subject and difficulty.</p>
+      </div>
+    </li>
+    <li class="guide-item">
+      <div class="guide-icon analytics">📊</div>
+      <div class="guide-content">
+        <h4>Analytics</h4>
+        <p>View detailed statistics about your questions and papers. Track performance and usage patterns.</p>
+      </div>
+    </li>
+    <li class="guide-item">
+      <div class="guide-icon history">🕐</div>
+      <div class="guide-content">
+        <h4>History</h4>
+        <p>Access previously generated papers and export them as PDF. Review and reuse past work.</p>
+      </div>
+    </li>
+    <li class="guide-item">
+      <div class="guide-icon settings">⚙️</div>
+      <div class="guide-content">
+        <h4>Settings</h4>
+        <p>Manage your account preferences and customize your experience.</p>
+      </div>
+    </li>
+  </ul>
+</section>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Manage Users - Question Paper Generator{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Manage Users</h1>
+  </div>
+  <a href="{{ url_for('admin.add_user') }}" class="btn btn-primary">+ Add User</a>
+</div>
+
+<!-- USERS TABLE -->
+<div class="card">
+  <table style="width: 100%; border-collapse: collapse;">
+    <thead>
+      <tr style="border-bottom: 2px solid #e5e7eb;">
+        <th style="text-align: left; padding: 12px; font-weight: 600; color: #6b7280; font-size: 13px;">Name</th>
+        <th style="text-align: left; padding: 12px; font-weight: 600; color: #6b7280; font-size: 13px;">Email</th>
+        <th style="text-align: left; padding: 12px; font-weight: 600; color: #6b7280; font-size: 13px;">Role</th>
+        <th style="text-align: left; padding: 12px; font-weight: 600; color: #6b7280; font-size: 13px;">Status</th>
+        <th style="text-align: center; padding: 12px; font-weight: 600; color: #6b7280; font-size: 13px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 12px;">Dr. John Doe</td>
+        <td style="padding: 12px; color: #6b7280;">john@email.com</td>
+        <td style="padding: 12px;"><span style="background: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Faculty</span></td>
+        <td style="padding: 12px;"><span style="background: #dbeafe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Active</span></td>
+        <td style="padding: 12px; text-align: center;">
+          <a href="#" style="color: var(--green); text-decoration: none; font-size: 13px;">Edit</a> |
+          <a href="#" style="color: #ef4444; text-decoration: none; font-size: 13px;">Delete</a>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 12px;">Prof. Jane Smith</td>
+        <td style="padding: 12px; color: #6b7280;">jane@email.com</td>
+        <td style="padding: 12px;"><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Admin</span></td>
+        <td style="padding: 12px;"><span style="background: #dbeafe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Active</span></td>
+        <td style="padding: 12px; text-align: center;">
+          <a href="#" style="color: var(--green); text-decoration: none; font-size: 13px;">Edit</a> |
+          <a href="#" style="color: #ef4444; text-decoration: none; font-size: 13px;">Delete</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}

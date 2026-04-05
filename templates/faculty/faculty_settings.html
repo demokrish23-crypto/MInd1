@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+
+<style>
+  .settings-container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+  .settings-title { color: var(--text); margin-bottom: 2rem; font-size: 2rem; font-weight: 700; display: flex; align-items: center; gap: 1rem; }
+  .settings-title i { color: var(--primary); font-size: 2rem; }
+  .settings-section { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow); }
+  .section-title { color: var(--text); font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
+  .section-title i { color: var(--primary); font-size: 1.5rem; }
+  .form-group { margin-bottom: 1.5rem; }
+  .form-group label { display: block; color: var(--text); font-weight: 500; margin-bottom: 0.5rem; }
+  .form-group input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--light); color: var(--text); transition: var(--transition); }
+  .form-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1); }
+  .button-group { display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end; }
+  .btn { padding: 0.75rem 1.5rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; transition: var(--transition); }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .btn-secondary { background: var(--light); color: var(--text); border: 1px solid var(--border); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+  .btn-secondary:hover { background: var(--border); }
+  .danger-zone { border-color: #dc2626; background: rgba(220, 38, 38, 0.08); box-shadow: 0 0 0 2px #dc262622; }
+  .danger-title { color: #dc2626; }
+  .danger-btn { background: #dc2626; color: white; }
+  .danger-btn:hover { background: #b91c1c; }
+</style>
+
+
+<div class="settings-container">
+  <h1 class="settings-title">
+    <i class='bx bx-cog'></i>
+    Faculty Settings
+  </h1>
+
+  <div class="settings-section">
+    <h2 class="section-title"><i class='bx bx-user-circle'></i> Profile Information</h2>
+    <form method="POST" action="{{ url_for('update_settings') }}">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" value="{{ user.name or '' }}" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="{{ user.email or '' }}" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Leave empty to keep current password">
+      </div>
+      <div class="button-group">
+        <button type="submit" class="btn btn-primary"><i class='bx bx-save'></i> Save Changes</button>
+      </div>
+    </form>
+  </div>
+
+
+  <div class="settings-section">
+    <h2 class="section-title"><i class='bx bx-slider'></i> Preferences</h2>
+    <form method="POST" action="#" id="preferences-form">
+      <div class="form-group toggle-row">
+        <span class="toggle-label">Enable email notifications for new papers</span>
+        <span class="toggle-btn-group">
+          <button type="button" class="toggle-btn active" id="email-notify-btn" aria-label="Toggle email notifications"></button>
+          <input type="hidden" id="email-notify" name="email_notify" value="1">
+        </span>
+      </div>
+      <div class="form-group toggle-row">
+        <span class="toggle-label">Auto-save papers as drafts</span>
+        <span class="toggle-btn-group">
+          <button type="button" class="toggle-btn active" id="auto-save-btn" aria-label="Toggle auto-save drafts"></button>
+          <input type="hidden" id="auto-save" name="auto_save" value="1">
+        </span>
+      </div>
+      <div class="form-group toggle-row">
+        <span class="toggle-label">Show advanced options</span>
+        <span class="toggle-btn-group">
+          <button type="button" class="toggle-btn" id="show-advanced-btn" aria-label="Toggle advanced options"></button>
+          <input type="hidden" id="show-advanced" name="show_advanced" value="0">
+        </span>
+      </div>
+      <div class="form-group toggle-row">
+        <span class="toggle-label">Enable dark mode</span>
+        <span class="toggle-btn-group">
+          <button type="button" class="toggle-btn" id="theme-toggle-settings-btn" aria-label="Toggle dark mode"></button>
+          <input type="hidden" id="theme-toggle-settings" name="dark_mode" value="0">
+        </span>
+      </div>
+          <style>
+            .toggle-row {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 1rem;
+            }
+            .toggle-label {
+              flex: 1;
+              color: var(--text);
+              font-size: 1rem;
+              font-weight: 500;
+            }
+            .toggle-btn-group {
+              display: flex;
+              gap: 1rem;
+            }
+            .toggle-btn {
+              min-width: 60px;
+              padding: 0.5rem 1.5rem;
+              border-radius: 20px;
+              border: 2px solid var(--primary);
+              background: var(--light);
+              color: var(--primary);
+              font-weight: 600;
+              cursor: pointer;
+              transition: background 0.2s, color 0.2s;
+              outline: none;
+            }
+            .toggle-btn.active {
+              background: var(--primary);
+              color: #fff;
+            }
+            .toggle-btn:focus {
+              box-shadow: 0 0 0 2px var(--primary-light);
+            }
+          </style>
+        <style>
+          .toggle-btn-group {
+            display: flex;
+            gap: 1rem;
+          }
+          .toggle-btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            border: 2px solid var(--primary);
+            background: var(--light);
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            outline: none;
+          }
+          .toggle-btn.active {
+            background: var(--primary);
+            color: #fff;
+          }
+          .toggle-btn:focus {
+            box-shadow: 0 0 0 2px var(--primary-light);
+          }
+        </style>
+      <div class="button-group">
+        <button type="submit" class="btn btn-primary"><i class='bx bx-save'></i> Save Preferences</button>
+      </div>
+    </form>
+  </div>
+
+
+  <div class="settings-section danger-zone">
+    <h2 class="section-title danger-title"><i class='bx bx-error-circle'></i> Danger Zone</h2>
+    <p style="color:#dc2626; margin-bottom:12px;">Irreversible actions</p>
+    <form id="delete-account-form" method="post" action="{{ url_for('faculty_delete_account') }}" onsubmit="return confirmDeleteAccount();">
+      <div class="form-group">
+        <label for="delete-password" style="color:#dc2626; font-weight:600;">Enter your password to confirm</label>
+        <input type="password" id="delete-password" name="password" placeholder="Type your password" required style="border-color:#dc2626; background:rgba(255,255,255,0.5);">
+      </div>
+      <div class="button-group">
+        <button type="submit" class="btn danger-btn"><i class='bx bx-trash'></i> Delete Account</button>
+      </div>
+    </form>
+  </div>
+
+<script>
+function confirmDeleteAccount() {
+  const password = document.getElementById('delete-password').value;
+  if (!password) {
+    alert('Please enter your password to confirm.');
+    return false;
+  }
+  return confirm('⚠️ WARNING: This will permanently delete your account and all your data. This action cannot be undone. Are you sure you want to proceed?');
+}
+</script>
+</div>
+
+<script>
+// Toggle button logic
+function setupToggleBtn(btnId, inputId, defaultActive = false, onToggle = null) {
+  const btn = document.getElementById(btnId);
+  const input = document.getElementById(inputId);
+  if (!btn || !input) return;
+  if (defaultActive) btn.classList.add('active');
+  btn.addEventListener('click', function() {
+    const isActive = btn.classList.toggle('active');
+    input.value = isActive ? '1' : '0';
+    if (onToggle) onToggle(isActive);
+  });
+}
+
+
+setupToggleBtn('email-notify-btn', 'email-notify', true, function(isActive) {
+  document.getElementById('email-notify-btn').textContent = isActive ? 'On' : 'Off';
+});
+setupToggleBtn('auto-save-btn', 'auto-save', true, function(isActive) {
+  document.getElementById('auto-save-btn').textContent = isActive ? 'On' : 'Off';
+});
+setupToggleBtn('show-advanced-btn', 'show-advanced', false, function(isActive) {
+  document.getElementById('show-advanced-btn').textContent = isActive ? 'On' : 'Off';
+});
+setupToggleBtn('theme-toggle-settings-btn', 'theme-toggle-settings', false, function(isActive) {
+  document.getElementById('theme-toggle-settings-btn').textContent = isActive ? 'On' : 'Off';
+  const newTheme = isActive ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+});
+
+
+// Set initial button text
+document.getElementById('email-notify-btn').textContent = 'On';
+document.getElementById('auto-save-btn').textContent = 'On';
+document.getElementById('show-advanced-btn').textContent = 'Off';
+
+// Sync dark mode toggle button with theme
+function syncThemeToggleBtn() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const btn = document.getElementById('theme-toggle-settings-btn');
+  const input = document.getElementById('theme-toggle-settings');
+  if (btn && input) {
+    btn.classList.toggle('active', isDark);
+    btn.textContent = isDark ? 'On' : 'Off';
+    input.value = isDark ? '1' : '0';
+  }
+}
+syncThemeToggleBtn();
+
+// Listen for theme changes from navbar toggle
+window.addEventListener('storage', function(e) {
+  if (e.key === 'theme') {
+    syncThemeToggleBtn();
+  }
+});
+
+// Also update settings toggle if theme is changed via navbar button
+const observer = new MutationObserver(syncThemeToggleBtn);
+observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+// Preferences form submit (demo only, no backend)
+const preferencesForm = document.getElementById('preferences-form');
+if (preferencesForm) {
+  preferencesForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    alert('Preferences saved! (Demo only, not persisted)');
+  });
+}
+</script>
+{% endblock %}

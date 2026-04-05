@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<style>
+  .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px; }
+  .kpi-card { background:var(--card); padding:24px; border-radius:8px; box-shadow:var(--shadow); text-align:center; border: 1px solid var(--border); color: var(--text); transition: var(--transition); position: relative; overflow: hidden; }
+  .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--primary), var(--accent)); }
+  .kpi-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+  .kpi-card h3 { color:var(--primary); font-size:32px; margin:8px 0; }
+  .kpi-label { color: var(--text-muted); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .kpi-change { color: var(--success); font-size: 0.875rem; margin-top: 0.5rem; }
+  
+  .quick-actions { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:16px; margin-bottom:24px; }
+  .action-card { background:var(--card); padding:20px; border-radius:8px; text-decoration:none; text-align:center; cursor:pointer; box-shadow:var(--shadow); transition:all 0.3s; color: var(--text); border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+  .action-card:hover { background:var(--primary); color:white; transform:translateY(-4px); box-shadow: var(--shadow-lg); }
+  .action-card i { font-size:32px; }
+  
+  .refresh-btn { background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 500; transition: var(--transition); display: flex; align-items: center; gap: 0.5rem; }
+  .refresh-btn:hover { background: var(--primary-dark); transform: translateY(-2px); }
+  
+  .overview-section { background:var(--card); padding:20px; border-radius:8px; box-shadow:var(--shadow); border: 1px solid var(--border); color: var(--text); }
+  .overview-section h3 { color: var(--text); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .overview-section ul { list-style:none; padding:0; }
+  .overview-section li { padding:12px 0; border-bottom:1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .overview-section li:last-child { border-bottom: none; }
+  .stat-label { font-weight: 600; }
+  .stat-value { color: var(--primary); font-weight: 700; }
+  
+  .two-column-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+  .session-widget { background:var(--card); padding:20px; border-radius:8px; box-shadow:var(--shadow); border: 1px solid var(--border); }
+  .session-widget h3 { color: var(--text); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 600; }
+  .session-widget i { color: var(--primary); font-size: 1.25rem; }
+  .session-item { padding: 12px; background: var(--light); border-radius: 6px; margin-bottom: 8px; border-left: 3px solid var(--primary); }
+  .session-email { color: var(--text); font-weight: 600; font-size: 0.875rem; }
+  .session-time { color: var(--text-muted); font-size: 0.75rem; margin-top: 4px; }
+  .session-role { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; margin-top: 4px; }
+  .role-faculty { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+  .role-admin { background: rgba(239, 68, 68, 0.1); color: #fca5a5; }
+  
+  [data-theme="dark"] .role-faculty { background: rgba(59, 130, 246, 0.25); color: #93c5fd; }
+  [data-theme="dark"] .role-admin { background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
+  .no-sessions { text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.875rem; }
+  .view-all-btn { display: block; text-align: center; padding: 10px; color: var(--primary); text-decoration: none; font-weight: 500; border-top: 1px solid var(--border); margin-top: 12px; transition: var(--transition); }
+  .view-all-btn:hover { background: var(--light); }
+  
+  @media (max-width: 1024px) {
+    .two-column-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="dashboard-header">
+  <h1><i class='bx bx-bar-chart-alt-2' style="color: var(--primary); font-size: 2rem; margin-right: 0.5rem;"></i>Admin Dashboard</h1>
+  <button class="refresh-btn" onclick="location.reload()">
+    <i class='bx bx-refresh'></i>
+    Refresh Stats
+  </button>
+</div>
+
+<section class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">Total Users</div>
+    <h3 id="total-users">{{ total_users }}</h3>
+    <div class="kpi-change">Active administrators & faculty</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Questions in System</div>
+    <h3 id="total-questions">{{ total_questions }}</h3>
+    <div class="kpi-change">Across {{ total_subjects }} subjects</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Papers Generated</div>
+    <h3 id="total-papers">{{ total_papers }}</h3>
+    <div class="kpi-change">Average {{ avg_p_per_faculty | round(1) }} per faculty</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Faculty Members</div>
+    <h3 id="faculty-count">{{ faculty_count }}</h3>
+    <div class="kpi-change">{{ avg_q_per_faculty | round(1) }} questions each</div>
+  </div>
+</section>
+
+<section class="quick-actions">
+  <a class="action-card" href="{{ url_for('admin.add_user') }}"><i class='bx bx-user-plus'></i><span>Add User</span></a>
+  <a class="action-card" href="{{ url_for('admin.manage_users') }}"><i class='bx bx-user-check'></i><span>Manage Users</span></a>
+  <a class="action-card" href="{{ url_for('admin.manage_papers') }}"><i class='bx bx-file-blank'></i><span>All Papers</span></a>
+  <a class="action-card" href="{{ url_for('admin.manage_questions') }}"><i class='bx bx-book'></i><span>All Questions</span></a>
+  <a class="action-card" href="{{ url_for('admin.system_analytics') }}"><i class='bx bx-bar-chart-alt-2' style="color: var(--primary); font-size: 2rem;"></i><span>Analytics</span></a>
+  <a class="action-card" href="{{ url_for('admin.admin_settings') }}"><i class='bx bx-cog'></i><span>Settings</span></a>
+</section>
+
+<div class="two-column-grid">
+  <!-- Session Logs Widget -->
+  <div class="session-widget">
+    <h3><i class='bx bx-history'></i>Recent Session Activity</h3>
+    <div id="recent-sessions">
+      <div class="no-sessions">Loading session logs...</div>
+    </div>
+    <a href="{{ url_for('admin.session_logs') }}" class="view-all-btn">View All Session Logs →</a>
+  </div>
+  
+  <!-- System Overview -->
+  <section class="overview-section">
+    <h3><i class='bx bx-info-circle'></i>System Overview</h3>
+    <ul>
+      <li>
+        <span class="stat-label">Database Location:</span>
+        <span class="stat-value" style="word-break: break-all; max-width: 50%; text-align: right;">{{ db_path }}</span>
+      </li>
+      <li>
+        <span class="stat-label">Total Subjects:</span>
+        <span class="stat-value">{{ total_subjects }}</span>
+      </li>
+      <li>
+        <span class="stat-label">Avg Questions per Faculty:</span>
+        <span class="stat-value">{{ avg_q_per_faculty | round(1) }}</span>
+      </li>
+      <li>
+        <span class="stat-label">Avg Papers per Faculty:</span>
+        <span class="stat-value">{{ avg_p_per_faculty | round(1) }}</span>
+      </li>
+    </ul>
+  </section>
+</div>
+
+<script>
+  // Load recent sessions
+  function loadRecentSessions() {
+    fetch('/admin/dashboard')
+      .then(r => r.text())
+      .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        document.getElementById('total-users').textContent = doc.getElementById('total-users').textContent;
+        document.getElementById('total-questions').textContent = doc.getElementById('total-questions').textContent;
+        document.getElementById('total-papers').textContent = doc.getElementById('total-papers').textContent;
+        document.getElementById('faculty-count').textContent = doc.getElementById('faculty-count').textContent;
+      })
+      .catch(e => console.log('Stats refresh failed silently'));
+  }
+  
+  // Load recent sessions from session logs API
+  function loadSessions() {
+    fetch('/admin/session-logs')
+      .then(r => r.text())
+      .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const rows = doc.querySelectorAll('.log-row');
+        
+        let html_content = '';
+        if (rows.length === 0) {
+          html_content = '<div class="no-sessions">No session logs yet</div>';
+        } else {
+          let count = 0;
+          rows.forEach(row => {
+            if (count < 5) {
+              const email = row.querySelector('td:nth-child(1)').textContent.trim();
+              const name = row.querySelector('td:nth-child(2)').textContent.trim();
+              const role = row.querySelector('td:nth-child(3)').textContent.trim().toLowerCase();
+              const time = row.querySelector('td:nth-child(4)').textContent.trim();
+              const ip = row.querySelector('td:nth-child(7)').textContent.trim();
+
+              html_content += `
+                <div class="session-item">
+                  <div class="session-email">${email}</div>
+                  <div class="session-time">${time}</div>
+                  <span class="session-role role-${role}">${role}</span>
+                  <div class="session-ip" style="color: var(--text-muted); font-size: 0.8em; font-family: monospace;">IP: ${ip}</div>
+                </div>
+              `;
+              count++;
+            }
+          });
+        }
+        
+        document.getElementById('recent-sessions').innerHTML = html_content;
+      })
+      .catch(e => {
+        console.log('Failed to load sessions:', e);
+        document.getElementById('recent-sessions').innerHTML = '<div class="no-sessions">Unable to load sessions</div>';
+      });
+  }
+  
+  // Load sessions on page load
+  loadSessions();
+  // Auto-refresh sessions every 60 seconds
+  setInterval(loadSessions, 60000);
+  
+  // Auto-refresh stats every 30 seconds
+  setInterval(loadRecentSessions, 30000);
+</script>
+
+{% endblock %}

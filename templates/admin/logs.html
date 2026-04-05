@@ -1,0 +1,38 @@
+{% extends "base_layout.html" %}
+
+{% block title %}System Logs - Question Paper Generator{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">System Logs</h1>
+</div>
+
+<div class="card">
+  <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+    <thead>
+      <tr style="border-bottom: 2px solid #e5e7eb;">
+        <th style="text-align: left; padding: 12px; font-weight: 600; color: #6b7280;">Timestamp</th>
+        <th style="text-align: left; padding: 12px; font-weight: 600; color: #6b7280;">Level</th>
+        <th style="text-align: left; padding: 12px; font-weight: 600; color: #6b7280;">Message</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 12px;">2024-03-26 10:45:32</td>
+        <td style="padding: 12px;"><span style="background: #dbeafe; color: #0369a1; padding: 2px 6px; border-radius: 3px;">INFO</span></td>
+        <td style="padding: 12px;">User faculty01 logged in</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 12px;">2024-03-26 10:32:15</td>
+        <td style="padding: 12px;"><span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 3px;">SUCCESS</span></td>
+        <td style="padding: 12px;">Paper generated successfully</td>
+      </tr>
+      <tr>
+        <td style="padding: 12px;">2024-03-26 09:20:45</td>
+        <td style="padding: 12px;"><span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 3px;">WARNING</span></td>
+        <td style="padding: 12px;">High server load detected</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}

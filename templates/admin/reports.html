@@ -1,0 +1,29 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Reports - Question Paper Generator{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">System Reports</h1>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+  <a href="#" class="card" style="text-decoration: none; color: inherit; text-align: center; cursor: pointer;">
+    <div style="font-size: 48px; margin-bottom: 10px;">📊</div>
+    <div style="font-weight: 600;">Usage Report</div>
+    <div style="font-size: 13px; color: #6b7280;">System usage statistics</div>
+  </a>
+
+  <a href="#" class="card" style="text-decoration: none; color: inherit; text-align: center; cursor: pointer;">
+    <div style="font-size: 48px; margin-bottom: 10px;">👥</div>
+    <div style="font-weight: 600;">User Report</div>
+    <div style="font-size: 13px; color: #6b7280;">User activities</div>
+  </a>
+
+  <a href="#" class="card" style="text-decoration: none; color: inherit; text-align: center; cursor: pointer;">
+    <div style="font-size: 48px; margin-bottom: 10px;">📈</div>
+    <div style="font-weight: 600;">Performance Report</div>
+    <div style="font-size: 13px; color: #6b7280;">System performance</div>
+  </a>
+</div>
+{% endblock %}

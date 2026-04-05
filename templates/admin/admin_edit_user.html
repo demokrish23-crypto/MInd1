@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Edit User{% endblock %}
+
+{% block content %}
+<style>
+  .form-container { background:var(--card); max-width:600px; margin:30px auto; padding:30px; border-radius:8px; box-shadow:var(--shadow); border: 1px solid var(--border); }
+  .form-group { margin-bottom:20px; }
+  .form-group label { display:block; font-weight:600; margin-bottom:8px; color: var(--text); }
+  .form-group input, .form-group select { width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; box-sizing:border-box; background: var(--light); color: var(--text); transition: var(--transition); }
+  .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1); }
+  .form-actions { display:flex; gap:12px; margin-top:24px; }
+  .btn { padding:10px 20px; border-radius:4px; cursor:pointer; border:none; text-decoration:none; transition: var(--transition); font-weight: 500; }
+  .btn-primary { background:var(--primary); color:white; }
+  .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+  .btn-cancel { background:var(--light); color:var(--text); border: 1px solid var(--border); }
+  .btn-cancel:hover { background:var(--border); }
+  .user-info { background:var(--light); padding:12px; border-radius:4px; margin-bottom:20px; border: 1px solid var(--border); color: var(--text); }
+  .section-title { color: var(--text); font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; margin-top: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+  .section-title i { color: var(--primary); font-size: 1.25rem; }
+  .success-msg { background: rgba(16, 185, 129, 0.1); border: 1px solid var(--primary); color: var(--success); padding: 12px; border-radius: 4px; margin-bottom: 20px; display: none; }
+</style>
+
+<h2 style="color: var(--text);"><i class='bx bx-edit'></i> Edit User</h2>
+
+<div class="form-container">
+  <div class="success-msg" id="success-msg">✓ User updated successfully! Redirecting...</div>
+  
+  <div class="user-info">
+    <strong>Current Email:</strong> {{ user_email }}
+  </div>
+  
+  <form action="{{ url_for('admin.edit_user_update', user_id=user_email) }}" method="post" id="edit-form">
+    <h3 class="section-title"><i class='bx bx-user'></i> Update Information</h3>
+    
+    <div class="form-group">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" value="{{ user_email }}" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" value="{{ user_name }}" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" placeholder="Leave blank to keep existing password">
+    </div>
+    
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to update this user?');">
+        <i class='bx bx-save'></i> Save Changes
+      </button>
+      <a href="{{ url_for('admin.manage_users') }}" class="btn btn-cancel">
+        <i class='bx bx-arrow-back'></i> Back to Users
+      </a>
+    </div>
+  </form>
+</div>
+
+<script>
+  document.getElementById('edit-form').addEventListener('submit', function() {
+    document.getElementById('success-msg').style.display = 'block';
+    setTimeout(() => {
+      window.location.href = '{{ url_for("admin.manage_users") }}';
+    }, 1000);
+  });
+</script>
+
+{% endblock %}

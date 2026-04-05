@@ -1,0 +1,99 @@
+
+{% extends "base.html" %}
+
+{% block title %}Manage Papers{% endblock %}
+
+{% block content %}
+<style>
+  .papers-header { margin-bottom:20px; color: var(--text); }
+  .papers-header p { color: var(--text-muted); }
+  .filter-bar { background:var(--card); padding:16px; border-radius:8px; margin-bottom:16px; display:flex; gap:12px; flex-wrap:wrap; border: 1px solid var(--border); }
+  .filter-bar input, .filter-bar select { padding:8px 12px; border:1px solid var(--border); border-radius:4px; background: var(--light); color: var(--text); transition: var(--transition); }
+  .filter-bar input:focus, .filter-bar select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1); }
+  .papers-table { width:100%; border-collapse:collapse; background:var(--card); border-radius:8px; overflow:hidden; box-shadow:var(--shadow); border: 1px solid var(--border); }
+  .papers-table th { background:var(--light); padding:12px; text-align:left; font-weight:600; border-bottom:1px solid var(--border); color: var(--text); }
+  .papers-table td { padding:12px; border-bottom:1px solid var(--border); color: var(--text); }
+  .papers-table tr:hover { background:rgba(0, 255, 136, 0.05); }
+  .actions { display:flex; gap:8px; }
+  .actions a, .actions button { padding:6px 12px; border-radius:4px; text-decoration:none; cursor:pointer; border:none; font-size:12px; transition: var(--transition); }
+  .action-view { background:var(--primary); color:white; }
+  .action-view:hover { background: var(--primary-dark); transform: translateY(-2px); }
+  .action-delete { background:var(--danger); color:white; }
+  .action-delete:hover { background: #dc2626; transform: translateY(-2px); }
+</style>
+
+<div class="papers-header">
+  <h2>All Generated Papers</h2>
+  <p style="color:#666; margin-top:8px;">Showing {{ papers | length }} total papers</p>
+</div>
+
+<div class="filter-bar">
+  <input type="text" placeholder="Search papers by subject..." id="search-input" style="flex:1; min-width:200px;">
+  <select id="difficulty-filter">
+    <option value="">All Difficulties</option>
+    <option value="1">Very Easy (1)</option>
+    <option value="2">Easy (2)</option>
+    <option value="3">Medium (3)</option>
+    <option value="4">Hard (4)</option>
+    <option value="5">Very Hard (5)</option>
+  </select>
+</div>
+
+<table class="papers-table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Subject</th>
+      <th>Difficulty</th>
+      <th>Questions</th>
+      <th>Created By</th>
+      <th>Created</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in papers %}
+      <tr class="p-row" data-difficulty="{{ p.difficulty }}">
+        <td>#{{ p.id }}</td>
+        <td>{{ p.subject }}</td>
+        <td>{{ p.difficulty }}/5</td>
+        <td>{{ p.questions | length }}</td>
+        <td>{{ p.owner_email }}</td>
+        <td>{{ p.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>
+          <div class="actions">
+            <a href="{{ url_for('paper.review_questions', paper_id=p.id) }}" class="action-view">View</a>
+            <form action="{{ url_for('admin.delete_paper', paper_id=p.id) }}" method="post" style="display:inline;">
+              <button class="action-delete" onclick="return confirm('Delete this paper?')">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+  const searchInput = document.getElementById('search-input');
+  const diffFilter = document.getElementById('difficulty-filter');
+  
+  function filterPapers() {
+    const search = searchInput.value.toLowerCase();
+    const difficulty = diffFilter.value;
+    
+    document.querySelectorAll('.p-row').forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const rowDiff = row.getAttribute('data-difficulty');
+      
+      const matchesSearch = text.includes(search);
+      const matchesDiff = !difficulty || rowDiff === difficulty;
+      
+      row.style.display = (matchesSearch && matchesDiff) ? '' : 'none';
+    });
+  }
+  
+  searchInput.addEventListener('input', filterPapers);
+  diffFilter.addEventListener('change', filterPapers);
+</script>
+
+{% endblock %}

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Final Question Paper</h2>
+
+{% for q in questions %}
+<p>[Part {{ q.section }}] {{ q.text }} ({{ q.marks }} marks)</p>
+{% endfor %}
+
+</body>
+</html>

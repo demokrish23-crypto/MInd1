@@ -1,0 +1,1248 @@
+{% extends "base.html" %}
+
+{% block title %}Review Questions{% endblock %}
+
+{% block content %}
+<style>
+    h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin: 0 0 1.2rem 0;
+      letter-spacing: 0.01em;
+      line-height: 1.2;
+      text-shadow: 0 2px 8px var(--shadow-xs);
+    }
+  /* Fix for sticky stats bar: parent .content must not have overflow-y:auto */
+  .content {
+    overflow-y: visible !important;
+  }
+  .review-header {
+    background: var(--card);
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border-left: 5px solid var(--primary);
+    color: var(--text);
+    transition: background 0.3s, color 0.3s, border 0.3s, box-shadow 0.3s;
+  }
+  .review-header h3 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin: 0;
+    letter-spacing: 0.01em;
+    transition: color 0.3s, text-shadow 0.3s;
+  }
+  .review-header p {
+    color: var(--text-muted);
+    font-size: 0.98rem;
+    margin: 0;
+    font-weight: 500;
+    transition: color 0.3s;
+  }
+  [data-theme="dark"] .review-header {
+    background: var(--dark-light);
+    border-left: 5px solid var(--neon-green);
+    color: var(--neon-green);
+    box-shadow: 0 4px 24px 0 var(--shadow-dark), 0 1.5px 0 0 var(--neon-green)33;
+  }
+  [data-theme="dark"] .review-header h3 {
+    color: var(--neon-green);
+    text-shadow: 0 2px 8px var(--shadow-dark);
+  }
+  [data-theme="dark"] .review-header p {
+    color: var(--success);
+  }
+  .review-stats {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 10.5vh;
+    z-index: 30;
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    justify-content: space-between;
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    border: 1.5px solid var(--border);
+    padding: 1.1rem 2rem 1.1rem 2rem;
+    box-shadow: 0 4px 24px 0 var(--shadow), 0 1.5px 0 0 var(--primary-light);
+    color: var(--text);
+    min-height: 70px;
+    transition: box-shadow 0.35s cubic-bezier(0.4,0,0.2,1), border 0.25s, background 0.35s, top 0.35s cubic-bezier(0.4,0,0.2,1), padding 0.35s cubic-bezier(0.4,0,0.2,1);
+    backdrop-filter: blur(2px);
+    will-change: top, box-shadow, background, padding;
+  }
+  .stat {
+    text-align: center;
+    flex: 1;
+  }
+  .stat h3 {
+    color: var(--primary);
+    font-size: 1.5rem;
+    margin: 0;
+    font-weight: 700;
+  }
+  .stat p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin: 4px 0 0 0;
+    font-weight: 500;
+  }
+  .question-list {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .question-item {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 1.2rem;
+    align-items: flex-start;
+    transition: background 0.2s, box-shadow 0.2s, border-left 0.2s;
+    border-radius: var(--radius);
+    margin: 0.5rem 0;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    position: relative;
+    color: var(--text);
+  }
+  .question-item.selected {
+    background: linear-gradient(135deg, var(--primary-light) 80%, var(--light) 100%);
+    border-left: 5px solid var(--primary);
+    box-shadow: var(--shadow-lg);
+  }
+  .question-item:hover {
+    background: var(--bg);
+    box-shadow: var(--shadow);
+  }
+  [data-theme="dark"] .question-item {
+    border-bottom: 1px solid var(--bg);
+    box-shadow: var(--shadow);
+  }
+  [data-theme="dark"] .question-item.selected {
+    background: linear-gradient(135deg, var(--primary-dark) 80%, var(--neon-green) 10%);
+    border-left: 5px solid var(--neon-green);
+    box-shadow: var(--shadow-lg);
+  }
+  [data-theme="dark"] .question-item:hover {
+    background: var(--primary-dark);
+    box-shadow: var(--shadow);
+  }
+  .question-checkbox {
+    margin-top: 0.3rem;
+    margin-left: 0.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 6px;
+    border: 2px solid var(--primary);
+    background: var(--card);
+    transition: border 0.2s;
+  }
+  [data-theme="dark"] .question-checkbox {
+    border: 2px solid var(--neon-green);
+    background: var(--dark-light);
+  }
+  .question-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .question-text {
+    font-size: 1.13rem;
+    line-height: 1.7;
+    color: var(--text);
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+    word-break: break-word;
+    letter-spacing: 0.01em;
+  }
+  [data-theme="dark"] .question-text {
+    color: var(--text);
+    text-shadow: 0 1px 4px var(--neon-green)20;
+  }
+  .question-meta {
+    display: flex;
+    gap: 0.7rem;
+    margin-top: 0.2rem;
+    font-size: 0.97rem;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+    font-weight: 500;
+  }
+  [data-theme="dark"] .question-meta {
+    color: var(--success);
+  }
+  .badge {
+    background: #e0e7ff;
+    color: #3730a3;
+    padding: 3px 12px;
+    border-radius: 6px;
+    font-size: 0.97rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin-right: 0.2rem;
+    box-shadow: 0 1px 4px var(--primary)11;
+  }
+  [data-theme="dark"] .badge {
+    background: #fffbe7;
+    color: #b45309;
+    font-weight: 700;
+    box-shadow: 0 1px 6px #fbbf2433;
+  }
+  [data-theme="dark"] .badge-marks {
+    background: #fffbe7;
+    color: #b45309;
+    font-weight: 700;
+    box-shadow: 0 1px 6px #fbbf2433;
+  }
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: flex-end;
+  }
+  .btn {
+    padding: 0.7rem 1.5rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+  }
+  .btn-primary:hover {
+    background: linear-gradient(135deg, var(--success), var(--primary));
+  }
+  .btn-secondary {
+    background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+    color: #fff;
+  }
+  .btn-secondary:hover {
+    background: linear-gradient(135deg, #3b82f6, var(--secondary));
+  }
+  @media (max-width: 700px) {
+    .review-header, .review-stats, .question-list, .question-item {
+      padding-left: 0.8rem !important;
+      padding-right: 0.8rem !important;
+    }
+    .review-header, .question-list {
+      border-radius: var(--radius);
+    }
+    .review-stats {
+      flex-direction: column;
+      gap: 0.7rem;
+      padding: 0.7rem 0.8rem;
+    }
+    .form-actions {
+      flex-direction: column;
+      gap: 0.7rem;
+      align-items: stretch;
+    }
+  }
+  .delete-btn {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.2rem;
+    background: linear-gradient(135deg, var(--danger), #b91c1c);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.4rem 0.9rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    opacity: 0.85;
+    transition: background 0.2s, opacity 0.2s;
+    z-index: 2;
+  }
+  .delete-btn:hover {
+    background: linear-gradient(135deg, #ef4444, var(--danger));
+    opacity: 1;
+  }
+  [data-theme="dark"] .delete-btn {
+    background: linear-gradient(135deg, #ef4444, #991b1b);
+    color: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+  [data-theme="dark"] .delete-btn:hover {
+    background: linear-gradient(135deg, #f87171, var(--danger));
+  }
+</style>
+
+<h2>Review & Select Questions</h2>
+
+{% set bloom_filter = bloom_filter or 'all' %}
+
+<div class="review-header">
+  <h3 style="margin:0;">{{ paper.subject }}</h3>
+     <p style="color:#999; margin:4px 0 0 0;">
+       Generated on {{ paper.created_at.strftime('%Y-%m-%d %H:%M') }}
+    </p>
+</div>
+<div class="filter-bar arranged-filter-bar sticky-filter-bar">
+  <div class="filter-section">
+    <div class="filter-group">
+      <label for="bloom-filter">Bloom:</label>
+      <div class="dropdown">
+        <select id="bloom-filter" name="bloom" onchange="applyFilters()">
+          <option value="all" {% if bloom_filter == 'all' %}selected{% endif %}>All</option>
+          <option value="Remembering" {% if bloom_filter == 'Remembering' %}selected{% endif %}>Remembering</option>
+          <option value="Understanding" {% if bloom_filter == 'Understanding' %}selected{% endif %}>Understanding</option>
+          <option value="Applying" {% if bloom_filter == 'Applying' %}selected{% endif %}>Applying</option>
+          <option value="Analyzing" {% if bloom_filter == 'Analyzing' %}selected{% endif %}>Analyzing</option>
+          <option value="Evaluating" {% if bloom_filter == 'Evaluating' %}selected{% endif %}>Evaluating</option>
+          <option value="Creating" {% if bloom_filter == 'Creating' %}selected{% endif %}>Creating</option>
+        </select>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label for="co-filter">CO:</label>
+      <div class="dropdown">
+        <select id="co-filter" name="co" onchange="applyFilters()">
+          <option value="all" {% if not co_filter or co_filter == 'all' %}selected{% endif %}>All</option>
+          {% for co in co_levels %}
+          <option value="{{ co }}" {% if co_filter and co in co_filter.split(',') %}selected{% endif %}>{{ co }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label for="topic-filter">Topic:</label>
+      <div class="dropdown">
+        <select id="topic-filter" name="topic" onchange="applyFilters()">
+          <option value="all" {% if not topic_filter or topic_filter == 'all' %}selected{% endif %}>All</option>
+          {% for topic in topics %}
+          <option value="{{ topic }}" {% if topic_filter and topic in topic_filter.split(',') %}selected{% endif %}>{{ topic }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="filter-divider"></div>
+  <div class="filter-section">
+    <div class="filter-group">
+      <label for="marks-filter">Marks:</label>
+      <div class="dropdown">
+        <select id="marks-filter" name="marks" onchange="applyFilters()">
+          <option value="all" {% if marks_filter == 'all' %}selected{% endif %}>All</option>
+          <option value="2" {% if marks_filter == '2' %}selected{% endif %}>2</option>
+          <option value="4" {% if marks_filter == '4' %}selected{% endif %}>4</option>
+          <option value="8" {% if marks_filter == '8' %}selected{% endif %}>8</option>
+        </select>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label for="sort-filter">Sort:</label>
+      <div class="dropdown">
+        <select id="sort-filter" name="sort" onchange="applyFilters()">
+          <option value="id" {% if sort_filter == 'id' %}selected{% endif %}>Default</option>
+          <option value="marks" {% if sort_filter == 'marks' %}selected{% endif %}>Marks</option>
+          <option value="bloom_level" {% if sort_filter == 'bloom_level' %}selected{% endif %}>Bloom</option>
+          <option value="co_level" {% if sort_filter == 'co_level' %}selected{% endif %}>CO</option>
+          <option value="topic" {% if sort_filter == 'topic' %}selected{% endif %}>Topic</option>
+        </select>
+      </div>
+    </div>
+    <div class="filter-group show-selected-toggle">
+      <label for="show-selected-filter">Show Selected:</label>
+      <label class="switch">
+        <input type="checkbox" id="show-selected-filter" name="show_selected" {% if show_selected_filter %}checked{% endif %}>
+        <span class="slider round"></span>
+      </label>
+    </div>
+  </div>
+  <div class="filter-divider"></div>
+  <div class="filter-section filter-section-wide" style="align-items: flex-end;">
+    <div class="filter-group filter-search">
+      <label for="search-filter">Search Question:</label>
+      <input type="text" id="search-filter" name="search" placeholder="Type to search..." value="{{ search_filter or '' }}">
+    </div>
+    <div class="filter-group">
+      <label for="exclude-filter">Exclude:</label>
+      <input type="text" id="exclude-filter" name="exclude" placeholder="Exclude keywords..." value="{{ exclude_filter or '' }}">
+    </div>
+    <!-- Simple toolbar buttons -->
+    <button type="button" id="select-all-btn" onclick="toggleSelectAllBtn(this)" aria-pressed="false" style="margin-left:10px; padding: 0.5rem 1.2rem; border-radius: 6px; border: 1.5px solid var(--primary); background: #f8fafc; color: var(--primary); font-weight: 600; font-size: 1rem;">Select All</button>
+    <button type="button" id="delete-selected-btn" onclick="deleteSelectedQuestions()" style="margin-left:8px; padding: 0.5rem 1.2rem; border-radius: 6px; border: 1.5px solid var(--danger); background: #fff1f2; color: var(--danger); font-weight: 600; font-size: 1rem;">Delete Selected</button>
+    <button type="button" id="clear-selections-btn" onclick="clearSelections()" style="margin-left:8px; padding: 0.5rem 1.2rem; border-radius: 6px; border: 1.5px solid var(--secondary); background: #f3f4f6; color: var(--secondary-dark, #64748b); font-weight: 600; font-size: 1rem;">Clear</button>
+    <!-- End simple toolbar buttons -->
+    <style>
+    .modern-toolbar-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.7rem;
+      height: 48px;
+      min-width: 148px;
+      max-width: 220px;
+      padding: 0 1.2rem;
+      font-size: 1.08rem;
+      font-weight: 700;
+      border-radius: 10px;
+      border: 2.5px solid var(--primary);
+      background: linear-gradient(135deg, #f0f9ff 80%, #e0f2fe 100%);
+      color: var(--primary-dark);
+      box-shadow: 0 2px 8px var(--primary)11;
+      transition: all 0.18s cubic-bezier(.4,0,.2,1);
+      cursor: pointer;
+      outline: none;
+      position: relative;
+      vertical-align: middle;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .modern-toolbar-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .modern-toolbar-btn:active,
+    .modern-toolbar-btn[aria-pressed="true"] {
+      background: linear-gradient(135deg, #d1fae5 80%, #bbf7d0 100%);
+      border-color: var(--success);
+      color: var(--success-dark, #166534);
+    }
+    .modern-toolbar-btn:hover, .modern-toolbar-btn:focus {
+      box-shadow: 0 4px 16px var(--primary)22;
+      border-color: var(--primary-dark);
+    }
+    .toolbar-btn-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.2rem;
+      height: 2.2rem;
+      min-width: 2.2rem;
+      min-height: 2.2rem;
+      background: #fff;
+      border-radius: 7px;
+      box-shadow: 0 1px 4px var(--primary)11;
+      position: relative;
+      font-size: 1.35rem;
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+    .toolbar-btn-label {
+      font-size: 1.08rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+    /* Checkbox inside Select All */
+    .toolbar-checkbox {
+      width: 1.7rem;
+      height: 1.7rem;
+      accent-color: var(--primary);
+      cursor: pointer;
+      opacity: 0;
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 2;
+    }
+    .toolbar-checkmark {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2.1rem;
+      height: 2.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 1.3rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: color 0.2s, opacity 0.2s;
+    }
+    .toolbar-checkbox:checked + .toolbar-checkmark {
+      opacity: 1;
+      color: var(--success);
+    }
+    /* Delete button accent */
+    .delete-btn-toolbar {
+      border-color: var(--danger);
+      color: var(--danger);
+      background: linear-gradient(135deg, #fff1f2 80%, #fee2e2 100%);
+    }
+    .delete-btn-toolbar:hover, .delete-btn-toolbar:focus {
+      border-color: var(--danger-dark, #b91c1c);
+      color: var(--danger-dark, #b91c1c);
+      background: linear-gradient(135deg, #fee2e2 80%, #fecaca 100%);
+    }
+    /* Clear button accent */
+    .clear-btn-toolbar {
+      border-color: var(--secondary);
+      color: var(--secondary-dark, #64748b);
+      background: linear-gradient(135deg, #f3f4f6 80%, #e5e7eb 100%);
+    }
+    .clear-btn-toolbar:hover, .clear-btn-toolbar:focus {
+      border-color: var(--secondary-dark, #334155);
+      color: var(--secondary-dark, #334155);
+      background: linear-gradient(135deg, #e0e7ef 80%, #cbd5e1 100%);
+    }
+    /* DARK MODE BUTTONS */
+    [data-theme="dark"] .modern-toolbar-btn {
+      background: linear-gradient(135deg, #23293a 80%, #1a2130 100%);
+      color: var(--neon-green);
+      border-color: var(--neon-green);
+      box-shadow: 0 2px 12px #00ff8855;
+    }
+    [data-theme="dark"] .modern-toolbar-btn:active,
+    [data-theme="dark"] .modern-toolbar-btn[aria-pressed="true"] {
+      background: linear-gradient(135deg, #193a2f 80%, #0f5132 100%);
+      border-color: var(--success);
+      color: var(--success);
+    }
+    [data-theme="dark"] .modern-toolbar-btn:hover, [data-theme="dark"] .modern-toolbar-btn:focus {
+      box-shadow: 0 4px 16px #00ff8844;
+      border-color: var(--neon-green);
+      color: var(--neon-green);
+    }
+    [data-theme="dark"] .toolbar-btn-icon {
+      background: #101624;
+      color: var(--neon-green);
+      box-shadow: 0 1px 8px #00ff8844;
+    }
+    [data-theme="dark"] .delete-btn-toolbar {
+      background: linear-gradient(135deg, #2d1517 80%, #1a0a0c 100%);
+      border-color: #ff4d4f;
+      color: #ff4d4f;
+    }
+    [data-theme="dark"] .delete-btn-toolbar:hover, [data-theme="dark"] .delete-btn-toolbar:focus {
+      background: linear-gradient(135deg, #4b1c1e 80%, #2d1517 100%);
+      border-color: #ff4d4f;
+      color: #ffb4b4;
+    }
+    [data-theme="dark"] .clear-btn-toolbar {
+      background: linear-gradient(135deg, #23293a 80%, #1a2130 100%);
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+    [data-theme="dark"] .clear-btn-toolbar:hover, [data-theme="dark"] .clear-btn-toolbar:focus {
+      background: linear-gradient(135deg, #1e293b 80%, #334155 100%);
+      border-color: #38bdf8;
+      color: #bae6fd;
+    }
+    @media (max-width: 700px) {
+      .modern-toolbar-btn {
+        height: 40px;
+        min-width: 100px;
+        max-width: 100%;
+        padding: 0 0.5rem;
+        font-size: 1rem;
+      }
+      .toolbar-btn-icon {
+        width: 1.7rem;
+        height: 1.7rem;
+        min-width: 1.7rem;
+        min-height: 1.7rem;
+        font-size: 1.08rem;
+      }
+    }
+    </style>
+    <!-- Remove old Clear button, now unified above -->
+    
+  </div>
+  </div>
+<div class="review-stats">
+  <div class="stat">
+    <h3>{{ questions | length }}</h3>
+    <p>Questions Generated</p>
+  </div>
+  <div class="stat">
+    <h3 id="selected-count">0</h3>
+    <p>Selected</p>
+  </div>
+  <div class="stat">
+    <h3 id="total-marks">0</h3>
+    <p>Total Marks</p>
+  </div>
+  <div class="stat">
+    <h3 id="unique-topics">0</h3>
+    <p>Unique Topics</p>
+  </div>
+</div>
+<style>
+  .sticky-filter-bar {
+    
+    top: calc(10.5vh + 90px); /* below stats bar */
+    z-index: 25;
+    margin-bottom: 1.5rem;
+    transition: box-shadow 0.3s, background 0.3s;
+  }
+  .dropdown select {
+    width: 100%;
+    min-width: 110px;
+    max-width: 180px;
+  }
+  .show-selected-toggle {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    min-width: 120px;
+  }
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 22px;
+    margin-top: 2px;
+  }
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border);
+    transition: .4s;
+    border-radius: 22px;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--primary);
+    transition: .4s;
+    border-radius: 50%;
+  }
+  .switch input:checked + .slider {
+    background-color: var(--primary-light);
+  }
+  .switch input:checked + .slider:before {
+    transform: translateX(16px);
+    background-color: var(--success);
+  }
+</style>
+</style>
+
+<style>
+  .arranged-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: flex-start;
+    margin-bottom: 18px;
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid var(--primary);
+  }
+  .filter-section {
+    display: flex;
+    flex-direction: row;
+    gap: 1.1rem;
+    align-items: flex-end;
+    background: var(--light);
+    border-radius: var(--radius);
+    padding: 0.7rem 1rem;
+    box-shadow: var(--shadow-xs);
+    flex-wrap: nowrap;
+  }
+  .filter-section-wide {
+    display: flex;
+    flex-direction: row;
+    gap: 1.1rem;
+    background: var(--card);
+    box-shadow: none;
+    padding: 0.7rem 0.5rem;
+    flex: 1 1 0%;
+    align-items: flex-end;
+  }
+  .filter-divider {
+    width: 2px;
+    min-height: 60px;
+    background: var(--border);
+    border-radius: 2px;
+    align-self: stretch;
+    margin: 0 0.5rem;
+    opacity: 0.5;
+  }
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 110px;
+    max-width: 160px;
+    flex: 0 0 140px;
+    box-sizing: border-box;
+  }
+  .filter-section .filter-group {
+    flex: 0 0 140px;
+    max-width: 160px;
+    min-width: 110px;
+  }
+  .filter-section .filter-group:last-child {
+    flex: 0 0 160px;
+    max-width: 180px;
+  }
+  .filter-section-wide .filter-group.filter-search {
+    flex: 2 1 0%;
+    min-width: 180px;
+    max-width: 400px;
+  }
+  .filter-section-wide .filter-group {
+    flex: 1 1 0%;
+    min-width: 120px;
+    max-width: 220px;
+  }
+  .filter-section-wide .filter-group:last-child {
+    flex: 0 0 120px;
+    max-width: 140px;
+  }
+  .filter-group label {
+    font-weight: 600;
+    color: var(--primary-dark);
+    margin-bottom: 2px;
+    font-size: 0.97rem;
+  }
+  .filter-group select,
+  .filter-group input[type="text"] {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--light);
+    color: var(--text);
+    font-size: 1rem;
+    transition: border 0.2s;
+    outline: none;
+  }
+  .filter-group select:focus,
+  .filter-group input[type="text"]:focus {
+    border: 1.5px solid var(--primary);
+  }
+  .filter-group input[type="checkbox"] {
+    margin-right: 6px;
+    accent-color: var(--primary);
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+  .filter-search {
+    flex: 1 1 180px;
+    min-width: 180px;
+    max-width: 400px;
+  }
+  .filter-search input {
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+  }
+  .filter-search label {
+    margin-bottom: 4px;
+    font-weight: 600;
+    color: var(--primary-dark);
+    font-size: 0.97rem;
+  }
+  @media (max-width: 1200px) {
+    .arranged-filter-bar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1rem;
+      padding: 0.7rem 0.8rem;
+    }
+    .filter-section, .filter-section-wide {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.7rem;
+      padding: 0.7rem 0.5rem;
+    }
+    .filter-group, .filter-section .filter-group, .filter-section-wide .filter-group {
+      flex: 1 1 0%;
+      max-width: 100%;
+      min-width: 0;
+    }
+    .filter-section-wide .filter-group.filter-search {
+      flex: 2 1 0%;
+    }
+    .filter-divider {
+      width: 100%;
+      min-height: 2px;
+      height: 2px;
+      margin: 0.5rem 0;
+    }
+  }
+</style>
+<script>
+  function clearFilters() {
+    document.getElementById('bloom-filter').value = 'all';
+    document.getElementById('co-filter').value = 'all';
+    document.getElementById('topic-filter').value = 'all';
+    document.getElementById('marks-filter').value = 'all';
+    document.getElementById('search-filter').value = '';
+    document.getElementById('sort-filter').value = 'id';
+    document.getElementById('exclude-filter').value = '';
+    document.getElementById('show-selected-filter').checked = false;
+    // Only applyFilters for non-show-selected filters
+    applyFilters();
+    updateStats();
+  }
+</script>
+
+<!-- Review header, filter bar, and stats bar are always shown at the top in this order -->
+
+<form method="POST" id="review-form">
+  <input type="hidden" name="bloom" id="bloom-hidden" value="{{ bloom_filter }}">
+  <input type="hidden" name="co" id="co-hidden" value="{{ co_filter }}">
+  <input type="hidden" name="topic" id="topic-hidden" value="{{ topic_filter }}">
+  <input type="hidden" name="sort" id="sort-hidden" value="{{ sort_filter }}">
+  <input type="hidden" name="exclude" id="exclude-hidden" value="{{ exclude_filter }}">
+  <input type="hidden" name="show_selected" id="show-selected-hidden" value="{{ 1 if show_selected_filter else 0 }}">
+  <input type="hidden" name="marks" id="marks-hidden" value="{{ marks_filter }}">
+  <input type="hidden" name="search" id="search-hidden" value="{{ search_filter }}">
+  <div class="question-list" id="question-list">
+    {% for q in questions %}
+      <div class="question-item">
+        <input type="checkbox" class="question-checkbox" name="select_question" value="{{ q.id }}" onchange="updateStats()">
+        <button type="button" class="delete-btn" title="Delete this question from paper" onclick="deleteQuestionFromPaper('{{ q.id }}', this)">
+          <i class="bx bx-trash"></i>
+        </button>
+        <div class="question-content">
+          <div class="question-text">
+            <strong>(Q{{ loop.index }})</strong> {{ q.text }}
+          </div>
+          <div class="question-meta">
+            <span class="badge">{{ q.marks }} Marks</span>
+            <span class="badge" style="background:#dbeafe; color:#1d4ed8;">{{ q.bloom_level }}</span>
+            <span class="badge" style="background:#dcfce7; color:#166534;">{{ q.co_level }}</span>
+            <span class="badge" style="background:#fce7f3; color:#be185d;">{{ q.topic }}</span>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div id="scroll-loader" style="padding:12px; text-align:center; color:#555; display:none;">Loading more questions...</div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Finalize Paper</button>
+    {% if paper %}
+      <button type="button" class="btn btn-secondary" onclick="saveToBank()">Save Selected to Bank</button>
+    {% endif %}
+  </div>
+</form>
+
+{% if paper %}
+<form id="save-bank-form" method="POST" action="{{ url_for('qb.save_to_bank', paper_id=paper.id) }}" style="display:none;"></form>
+{% endif %}
+
+<script>
+  function updateStats() {
+    const checkboxes = document.querySelectorAll('input[name="select_question"]:checked');
+    document.getElementById('selected-count').textContent = checkboxes.length;
+    let totalMarks = 0;
+    checkboxes.forEach(cb => {
+      const item = cb.closest('.question-item');
+      const badgeText = item.querySelector('.badge').textContent;
+      const marks = parseInt(badgeText);
+      totalMarks += marks;
+    });
+    document.getElementById('total-marks').textContent = totalMarks;
+
+    // Calculate unique topics
+    const topicSet = new Set();
+    document.querySelectorAll('.question-item').forEach(item => {
+      // Only count visible questions (filtered)
+      if (item.style.display === 'none') return;
+      const meta = item.querySelector('.question-meta');
+      if (meta) {
+        // The last badge is the topic
+        const badges = meta.querySelectorAll('.badge');
+        if (badges.length > 0) {
+          const topic = badges[badges.length - 1].textContent.trim();
+          if (topic) topicSet.add(topic);
+        }
+      }
+    });
+    document.getElementById('unique-topics').textContent = topicSet.size;
+
+    // Show Selected logic
+    const showSelected = document.getElementById('show-selected-filter');
+    if (showSelected && showSelected.checked) {
+      document.querySelectorAll('.question-item').forEach(item => {
+        const cb = item.querySelector('.question-checkbox');
+        if (cb && cb.checked) {
+          item.style.display = '';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    } else {
+      document.querySelectorAll('.question-item').forEach(item => {
+        item.style.display = '';
+      });
+    }
+  }
+
+  // Update question list when Show Selected is toggled
+  document.addEventListener('DOMContentLoaded', function() {
+    const showSelected = document.getElementById('show-selected-filter');
+    if (showSelected) {
+      showSelected.addEventListener('change', function() {
+        updateStats();
+      });
+    }
+  });
+
+  function appendQuestionItem(question, index) {
+    const list = document.getElementById('question-list');
+    const item = document.createElement('div');
+    item.className = 'question-item';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'question-checkbox';
+    checkbox.name = 'select_question';
+    checkbox.value = question.id;
+    checkbox.onchange = updateStats;
+    if (question.is_selected) checkbox.checked = true;
+
+    const content = document.createElement('div');
+    content.className = 'question-content';
+
+    const text = document.createElement('div');
+    text.className = 'question-text';
+    text.innerHTML = `<strong>(Q${index})</strong> ${question.text}`;
+
+    const meta = document.createElement('div');
+    meta.className = 'question-meta';
+    meta.innerHTML = `
+      <span class="badge">${question.marks} Marks</span>
+      <span class="badge" style="background:#dbeafe; color:#1d4ed8;">${question.bloom_level || 'N/A'}</span>
+      <span class="badge" style="background:#dcfce7; color:#166534;">${question.co_level || 'N/A'}</span>
+      <span class="badge" style="background:#fce7f3; color:#be185d;">${question.topic}</span>
+    `;
+
+    content.appendChild(text);
+    content.appendChild(meta);
+    item.appendChild(checkbox);
+    item.appendChild(content);
+    list.appendChild(item);
+  }
+
+  let currentPage = 1;
+  const perPage = 10;
+  let isLoading = false;
+  let hasMore = {{ 'true' if has_more else 'false' }};
+  const paperId = {{ paper.id if paper else 0 }};
+
+
+  function applyFilters() {
+    const bloom = document.getElementById('bloom-filter').value;
+    const co = document.getElementById('co-filter').value;
+    const topic = document.getElementById('topic-filter').value;
+    const marks = document.getElementById('marks-filter').value;
+    const search = document.getElementById('search-filter').value.trim();
+    const sort = document.getElementById('sort-filter').value;
+    const exclude = document.getElementById('exclude-filter').value.trim();
+    const showSelected = document.getElementById('show-selected-filter').checked ? '1' : '';
+
+    document.getElementById('bloom-hidden').value = bloom;
+    document.getElementById('co-hidden').value = co;
+    document.getElementById('topic-hidden').value = topic;
+    document.getElementById('marks-hidden').value = marks;
+    document.getElementById('search-hidden').value = search;
+    document.getElementById('sort-hidden').value = sort;
+    document.getElementById('exclude-hidden').value = exclude;
+    document.getElementById('show-selected-hidden').value = showSelected;
+
+    const query = new URLSearchParams(window.location.search);
+    if (bloom && bloom !== 'all') query.set('bloom', bloom); else query.delete('bloom');
+    if (co && co !== 'all') query.set('co', co); else query.delete('co');
+    if (topic && topic !== 'all') query.set('topic', topic); else query.delete('topic');
+    if (marks && marks !== 'all') query.set('marks', marks); else query.delete('marks');
+    if (search && search.length > 0) query.set('search', search); else query.delete('search');
+    if (sort && sort !== 'id') query.set('sort', sort); else query.delete('sort');
+    if (exclude && exclude.length > 0) query.set('exclude', exclude); else query.delete('exclude');
+    if (showSelected) query.set('show_selected', '1'); else query.delete('show_selected');
+    window.location.search = query.toString();
+  }
+  // Only trigger search/exclude on Enter
+  document.addEventListener('DOMContentLoaded', function() {
+    var searchInput = document.getElementById('search-filter');
+    var excludeInput = document.getElementById('exclude-filter');
+    if (searchInput) {
+      searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          applyFilters();
+        }
+      });
+    }
+    if (excludeInput) {
+      excludeInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          applyFilters();
+        }
+      });
+    }
+  });
+
+  async function loadMoreQuestions() {
+    if (!hasMore || isLoading || !paperId) return;
+
+    const scroller = document.getElementById('scroll-loader');
+    isLoading = true;
+    scroller.style.display = 'block';
+
+    try {
+      const nextPage = currentPage + 1;
+      const bloom = document.getElementById('bloom-filter') ? document.getElementById('bloom-filter').value : 'all';
+      const bloomQuery = bloom && bloom !== 'all' ? `&bloom=${encodeURIComponent(bloom)}` : '';
+      const response = await fetch(`/faculty/paper-review/${paperId}/questions?page=${nextPage}&per_page=${perPage}${bloomQuery}`);
+      if (!response.ok) throw new Error('Network response failed');
+
+      const data = await response.json();
+      if (!data.questions || data.questions.length === 0) {
+        hasMore = false;
+      } else {
+        const baseIndex = document.querySelectorAll('.question-item').length;
+        data.questions.forEach((question, i) => {
+          appendQuestionItem(question, baseIndex + i + 1);
+        });
+        currentPage = data.page;
+        hasMore = data.has_more;
+      }
+    } catch (error) {
+      console.error('Error loading questions:', error);
+    } finally {
+      isLoading = false;
+      scroller.style.display = hasMore ? 'none' : 'none';
+    }
+  }
+
+  window.addEventListener('scroll', () => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 240) {
+      loadMoreQuestions();
+    }
+  });
+
+  function saveToBank() {
+    const checkedBoxes = document.querySelectorAll('input[name="select_question"]:checked');
+    if (checkedBoxes.length === 0) {
+      alert('Please select at least one question');
+      return;
+    }
+
+    const saveForm = document.getElementById('save-bank-form');
+    if (!saveForm) {
+      alert('Save form not found');
+      return;
+    }
+
+    saveForm.innerHTML = '';
+
+    checkedBoxes.forEach(box => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'selected_question';
+      input.value = box.value;
+      saveForm.appendChild(input);
+    });
+
+    saveForm.submit();
+  }
+
+
+  // Robust single delete: always syncs with backend and UI
+  async function deleteQuestionFromPaper(qid, el) {
+    if (!confirm('Delete this question from paper?')) return;
+    try {
+      const response = await fetch(`/faculty/paper-review/delete-question/${qid}`, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      const data = await response.json();
+      if (data.success) {
+        const item = el.closest('.question-item');
+        if (item) item.parentNode.removeChild(item);
+        updateStats();
+        updateDeleteSelectedBtn();
+      } else {
+        alert(data.error || 'Failed to delete question.');
+      }
+    } catch (e) {
+      alert('Failed to delete question.');
+    }
+  }
+
+  function toggleSelectAllBtn(btn) {
+    const checkboxes = document.querySelectorAll('.question-checkbox');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    const newState = !allChecked;
+    checkboxes.forEach(cb => { if (!cb.disabled) cb.checked = newState; });
+    btn.setAttribute('aria-pressed', newState ? 'true' : 'false');
+    updateStats();
+    updateDeleteSelectedBtn();
+  }
+
+  function updateDeleteSelectedBtn() {
+    const btn = document.getElementById('delete-selected-btn');
+    const anyChecked = document.querySelectorAll('.question-checkbox:checked').length > 0;
+    if (btn) btn.disabled = !anyChecked;
+  }
+
+
+
+  // Robust bulk delete: always syncs with backend and UI
+  async function deleteSelectedQuestions() {
+    const checked = Array.from(document.querySelectorAll('.question-checkbox:checked'));
+    const deleteBtn = document.getElementById('delete-selected-btn');
+    if (checked.length === 0) {
+      alert('Please select at least one question to delete.');
+      return;
+    }
+    if (!confirm('Delete all selected questions from paper?')) return;
+    deleteBtn.disabled = true;
+    const ids = checked.map(cb => cb.value);
+    try {
+      const response = await fetch('/faculty/paper-review/delete-question/bulk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ ids })
+      });
+      const data = await response.json();
+      if (data.success && Array.isArray(data.deleted_ids)) {
+        // Remove only successfully deleted questions
+        checked.forEach(cb => {
+          if (data.deleted_ids.includes(Number(cb.value)) || data.deleted_ids.includes(cb.value)) {
+            const item = cb.closest('.question-item');
+            if (item) item.parentNode.removeChild(item);
+          }
+        });
+        if (data.failed_ids && data.failed_ids.length > 0) {
+          alert('Failed to delete question(s) with ID(s): ' + data.failed_ids.join(', '));
+        }
+      } else {
+        alert(data.error || 'Failed to delete selected questions.');
+      }
+    } catch (e) {
+      alert('Failed to delete selected questions.');
+    }
+    updateDeleteSelectedBtn();
+    updateStats();
+    deleteBtn.disabled = false;
+  }
+
+  function clearSelections() {
+    // Reset filter fields visually
+    const filterFields = [
+      { id: 'bloom-filter', value: 'all' },
+      { id: 'co-filter', value: 'all' },
+      { id: 'topic-filter', value: 'all' },
+      { id: 'marks-filter', value: 'all' },
+      { id: 'search-filter', value: '' },
+      { id: 'sort-filter', value: 'id' },
+      { id: 'exclude-filter', value: '' }
+    ];
+    filterFields.forEach(f => {
+      const el = document.getElementById(f.id);
+      if (el) el.value = f.value;
+    });
+    const showSelected = document.getElementById('show-selected-filter');
+    if (showSelected) showSelected.checked = false;
+    // Now re-filter the question list in-place (no reload)
+    filterQuestionsInPlace();
+    updateStats();
+  }
+
+  function filterQuestionsInPlace() {
+    // Get filter values (all reset to default)
+    const bloom = document.getElementById('bloom-filter').value;
+    const co = document.getElementById('co-filter').value;
+    const topic = document.getElementById('topic-filter').value;
+    const marks = document.getElementById('marks-filter').value;
+    const search = document.getElementById('search-filter').value.trim().toLowerCase();
+    const exclude = document.getElementById('exclude-filter').value.trim().toLowerCase();
+    // For each question-item, show if it matches all filters (which are now default)
+    document.querySelectorAll('.question-item').forEach(item => {
+      let show = true;
+      // Bloom
+      if (bloom !== 'all') {
+        const bloomBadge = item.querySelector('.badge:nth-child(2)');
+        if (!bloomBadge || bloomBadge.textContent.trim() !== bloom) show = false;
+      }
+      // CO
+      if (co !== 'all') {
+        const coBadge = item.querySelector('.badge:nth-child(3)');
+        if (!coBadge || coBadge.textContent.trim() !== co) show = false;
+      }
+      // Topic
+      if (topic !== 'all') {
+        const topicBadge = item.querySelector('.badge:nth-child(4)');
+        if (!topicBadge || topicBadge.textContent.trim() !== topic) show = false;
+      }
+      // Marks
+      if (marks !== 'all') {
+        const marksBadge = item.querySelector('.badge:nth-child(1)');
+        if (!marksBadge || marksBadge.textContent.trim() !== marks + ' Marks') show = false;
+      }
+      // Search
+      if (search.length > 0) {
+        const text = item.querySelector('.question-text');
+        if (!text || !text.textContent.toLowerCase().includes(search)) show = false;
+      }
+      // Exclude
+      if (exclude.length > 0) {
+        const text = item.querySelector('.question-text');
+        if (text && text.textContent.toLowerCase().includes(exclude)) show = false;
+      }
+      item.style.display = show ? '' : 'none';
+    });
+  }
+
+  // Make clicking anywhere on question-item toggle checkbox
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.question-item').forEach(function(item) {
+      item.addEventListener('click', function(e) {
+        // Don't toggle if clicking on delete button or inside question-content
+        if (e.target.closest('.delete-btn') || e.target.classList.contains('question-checkbox')) return;
+        const cb = item.querySelector('.question-checkbox');
+        if (cb) cb.checked = !cb.checked;
+        updateStats();
+        updateDeleteSelectedBtn();
+      });
+    });
+    document.querySelectorAll('.question-checkbox').forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        updateStats();
+        updateDeleteSelectedBtn();
+      });
+    });
+    updateDeleteSelectedBtn();
+    updateStats();
+  });
+</script>
+{% endblock %}
+

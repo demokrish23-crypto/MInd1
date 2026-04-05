@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Questions{% endblock %}
+
+{% block content %}
+<style>
+  .questions-header { margin-bottom:20px; color: var(--text); }
+  .questions-header p { color: var(--text-muted); }
+  .filter-bar { background:var(--card); padding:16px; border-radius:8px; margin-bottom:16px; display:flex; gap:12px; flex-wrap:wrap; border: 1px solid var(--border); }
+  .filter-bar input, .filter-bar select { padding:8px 12px; border:1px solid var(--border); border-radius:4px; background: var(--light); color: var(--text); transition: var(--transition); }
+  .filter-bar input:focus, .filter-bar select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1); }
+  .questions-table { width:100%; border-collapse:collapse; background:var(--card); border-radius:8px; overflow:hidden; box-shadow:var(--shadow); border: 1px solid var(--border); }
+  .questions-table th { background:var(--light); padding:12px; text-align:left; font-weight:600; border-bottom:1px solid var(--border); color: var(--text); }
+  .questions-table td { padding:12px; border-bottom:1px solid var(--border); color: var(--text); }
+  .questions-table tr:hover { background:rgba(0, 255, 136, 0.05); }
+  .badge { background:rgba(0, 255, 136, 0.1); color:var(--primary); padding:2px 8px; border-radius:4px; font-size:12px; border: 1px solid var(--primary); }
+  .badge-medium { background:rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.5); }
+  .badge-hard { background:rgba(234, 88, 12, 0.1); color: #fdba74; border: 1px solid rgba(234, 88, 12, 0.5); }
+  
+  [data-theme="dark"] .badge-medium { background:rgba(239, 68, 68, 0.2); color: #fb7185; border: 1px solid rgba(239, 68, 68, 0.6); }
+  [data-theme="dark"] .badge-hard { background:rgba(234, 88, 12, 0.2); color: #fb923c; border: 1px solid rgba(234, 88, 12, 0.6); }
+  .actions { display:flex; gap:8px; }
+  .actions button { padding:6px 12px; border-radius:4px; text-decoration:none; cursor:pointer; border:none; font-size:12px; transition: var(--transition); }
+  .action-delete { background:var(--danger); color:white; }
+  .action-delete:hover { background: #dc2626; transform: translateY(-2px); }
+</style>
+
+<div class="questions-header">
+  <h2>All Questions in System</h2>
+  <p style="color:#666; margin-top:8px;">Showing {{ questions | length }} total questions</p>
+</div>
+
+<div class="filter-bar">
+  <input type="text" placeholder="Search questions..." id="search-input" style="flex:1; min-width:200px;">
+  <select id="subject-filter" style="min-width:150px;">
+    <option value="">All Subjects</option>
+    {% for subject in subjects %}
+      <option value="{{ subject }}">{{ subject }}</option>
+    {% endfor %}
+  </select>
+  <select id="difficulty-filter">
+    <option value="">All Difficulties</option>
+    <option value="Easy">Easy</option>
+    <option value="Medium">Medium</option>
+    <option value="Hard">Hard</option>
+  </select>
+</div>
+
+<table class="questions-table">
+  <thead>
+    <tr>
+      <th>Question Text</th>
+      <th>Subject</th>
+      <th>Topic</th>
+      <th>Marks</th>
+      <th>Difficulty</th>
+      <th>Owner</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for q in questions %}
+      <tr class="q-row" data-subject="{{ q.subject }}" data-difficulty="{{ q.difficulty }}">
+        <td>{{ q.text[:50] }}...</td>
+        <td>{{ q.subject }}</td>
+        <td>{{ q.topic }}</td>
+        <td>{{ q.marks }}</td>
+        <td><span class="badge {% if q.difficulty == 'Medium' %}badge-medium{% elif q.difficulty == 'Hard' %}badge-hard{% endif %}">{{ q.difficulty }}</span></td>
+        <td>{{ q.owner_email }}</td>
+        <td>
+          <form action="{{ url_for('admin.delete_question', q_id=q.id) }}" method="post" style="display:inline;">
+            <button class="action-delete" onclick="return confirm('Delete this question?')">Delete</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+  const searchInput = document.getElementById('search-input');
+  const subjectFilter = document.getElementById('subject-filter');
+  const diffFilter = document.getElementById('difficulty-filter');
+  
+  function filterQuestions() {
+    const search = searchInput.value.toLowerCase();
+    const subject = subjectFilter.value;
+    const difficulty = diffFilter.value;
+    
+    document.querySelectorAll('.q-row').forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const rowSubject = row.getAttribute('data-subject');
+      const rowDiff = row.getAttribute('data-difficulty');
+      
+      const matchesSearch = text.includes(search);
+      const matchesSubject = !subject || rowSubject === subject;
+      const matchesDiff = !difficulty || rowDiff === difficulty;
+      
+      row.style.display = (matchesSearch && matchesSubject && matchesDiff) ? '' : 'none';
+    });
+  }
+  
+  searchInput.addEventListener('input', filterQuestions);
+  subjectFilter.addEventListener('change', filterQuestions);
+  diffFilter.addEventListener('change', filterQuestions);
+</script>
+
+{% endblock %}
